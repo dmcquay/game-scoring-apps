@@ -189,13 +189,13 @@ class App extends Component {
                             {player} ({getPlayerBid(player, this.state.round, this.state)})
                         </div>
                         <div className="col player-tricks-scoring-controls">
-                            <button className="btn btn-primary" onClick={() => this.incrementPlayerTrickCount(player)}>+</button>
+                            <button className="btn btn-lg btn-primary" onClick={() => this.incrementPlayerTrickCount(player)}>+</button>
                             <span className="player-tricks-count">{getPlayerTrickCount(player, this.state.round, this.state)}</span>
-                            <button className="btn btn-primary" onClick={() => this.decrementPlayerTrickCount(player)}>-</button>
+                            <button className="btn btn-lg btn-primary" onClick={() => this.decrementPlayerTrickCount(player)}>-</button>
                         </div>
                     </div>
                 )}
-                <button className="btn btn-primary" disabled={!roundComplete} onClick={this.completeRound.bind(this)}>Complete Round</button>
+                <button className="btn btn-lg btn-primary" disabled={!roundComplete} onClick={this.completeRound.bind(this)}>Complete Round</button>
             </div>
         )
     }
@@ -227,7 +227,7 @@ class App extends Component {
 
                 {!nextPlayerToBid && <div>
                     <p>All bids are in. {maxBidder} goes first.</p>
-                    <button onClick={this.doneBidding.bind(this)} className="btn btn-primary">Continue</button>
+                    <button onClick={this.doneBidding.bind(this)} className="btn btn-lg btn-primary">Continue</button>
                 </div>}
             </div>
         )
@@ -251,8 +251,8 @@ class App extends Component {
                         <input className="form-control" id="player-name-input" type="text" onChange={evt => this.updatePlayerInput(evt.target.value)} value={this.state.playerInput}/>
                     </div>
                     <div className="form-group">
-                        <button className="add-player-btn btn btn-primary" onClick={this.addPlayer.bind(this)}>Add Player</button>
-                        <button className="add-player-btn btn btn-primary" onClick={this.startGame.bind(this)}>Start</button>
+                        <button className="add-player-btn btn btn-lg btn-primary" onClick={this.addPlayer.bind(this)}>Add Player</button>
+                        <button className="add-player-btn btn btn-lg btn-success" onClick={this.startGame.bind(this)}>Start</button>
                         {this.state.playerInputError && <div className="alert alert-danger" style={{color:'red'}}>{this.state.playerInputError}</div>}
                     </div>
                 </form>
@@ -261,11 +261,16 @@ class App extends Component {
     }
 
     renderLeaderboard() {
+        const leaders = getLeaderboard(this.state)
+
+        if (!leaders.length)
+            return null
+
         return (
             <div className="scores container">
                 <h3 className="scores-title">Leaderboard</h3>
                 <ul className="list-unstyled">
-                    {getLeaderboard(this.state).map(({player, score}) => <li key={player}>{player}: {score}</li>)}
+                    {leaders.map(({player, score}) => <li key={player}>{player}: {score}</li>)}
                 </ul>
             </div>
         )
