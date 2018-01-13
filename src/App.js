@@ -187,10 +187,10 @@ class App extends Component {
                 <h3>Tricks</h3>
                 {this.state.players.map(player =>
                     <div key={player} className="row player-tricks-row">
-                        <div className="col">
+                        <div className="col-5">
                             {player} ({getPlayerBid(player, this.state.round, this.state)})
                         </div>
-                        <div className="col player-tricks-scoring-controls">
+                        <div className="col-7 player-tricks-scoring-controls">
                             <button className="btn btn-lg btn-primary" onClick={() => this.incrementPlayerTrickCount(player)}>+</button>
                             <span className="player-tricks-count">{getPlayerTrickCount(player, this.state.round, this.state)}</span>
                             <button className="btn btn-lg btn-primary" onClick={() => this.decrementPlayerTrickCount(player)}>-</button>
