@@ -1,0 +1,22 @@
+{
+  "name": "game-scoring-apps",
+  "version": "0.1.0",
+  "private": true,
+  "homepage": "http://dmcquay.github.io/game-scoring-apps",
+  "dependencies": {
+    "gh-pages": "^1.1.0",
+    "immutable": "^3.8.2",
+    "ramda": "^0.25.0",
+    "react": "^16.2.0",
+    "react-dom": "^16.2.0",
+    "react-scripts": "1.0.17"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject"
+  }
+}
