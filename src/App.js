@@ -125,8 +125,10 @@ class App extends Component {
         return false
     }
 
-    startGame() {
+    startGame(evt) {
+        evt.preventDefault()
         this.setState(state => ({stage: 'bids'}))
+        return false
     }
 
     getNextPlayerToBid() {
