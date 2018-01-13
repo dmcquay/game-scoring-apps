@@ -109,7 +109,9 @@ class App extends Component {
         }))
     }
 
-    addPlayer() {
+    addPlayer(evt) {
+        evt.preventDefault()
+
         if (!this.state.playerInputError) {
             this.setState(state => ({
                 players: [
@@ -243,15 +245,17 @@ class App extends Component {
                     </div>
                     : <p>No players yet.</p>
                 }
-                <div className="form-group">
-                    <label for="player-name-input">Name:</label>
-                    <input className="form-control" id="player-name-input" type="text" onChange={evt => this.updatePlayerInput(evt.target.value)} value={this.state.playerInput}/>
-                </div>
-                <div className="form-group">
-                    <button className="add-player-btn btn btn-primary" onClick={this.addPlayer.bind(this)}>Add Player</button>
-                    <button className="add-player-btn btn btn-primary" onClick={this.startGame.bind(this)}>Start</button>
-                    {this.state.playerInputError && <div className="alert alert-danger" style={{color:'red'}}>{this.state.playerInputError}</div>}
-                </div>
+                <form onSubmit={this.addPlayer.bind(this)}>
+                    <div className="form-group">
+                        <label for="player-name-input">Name:</label>
+                        <input className="form-control" id="player-name-input" type="text" onChange={evt => this.updatePlayerInput(evt.target.value)} value={this.state.playerInput}/>
+                    </div>
+                    <div className="form-group">
+                        <button className="add-player-btn btn btn-primary" onClick={this.addPlayer.bind(this)}>Add Player</button>
+                        <button className="add-player-btn btn btn-primary" onClick={this.startGame.bind(this)}>Start</button>
+                        {this.state.playerInputError && <div className="alert alert-danger" style={{color:'red'}}>{this.state.playerInputError}</div>}
+                    </div>
+                </form>
             </div>
         )
     }
