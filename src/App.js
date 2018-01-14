@@ -1,6 +1,7 @@
 import React, {Component} from 'react'
-import './App.css'
 import * as R from 'ramda'
+
+import './App.css'
 
 function getPlayerTrickCount(player, round, state) {
     return R.path(['rounds', round, 'tricks', player], state) || 0
@@ -46,8 +47,13 @@ function getLeaderboard(state) {
     return R.reverse(R.sortBy(R.prop('score'), playerScores))
 }
 
-export function getOrderedPlayersForRound(players, round) {
-    const first = ((round+1) % players.length) - 1
+export function getDealer(players, round) {
+    const idx = round % players.length
+    return players[idx]
+}
+
+export function getOrderedPlayersForBidding(players, round) {
+    const first = (round + 1) % players.length
     return players.slice(first).concat(players.slice(0, first))
 }
 
@@ -64,35 +70,37 @@ class App extends Component {
             rounds: [],
 
             // jump into a game for testing
-            // stage: 'tricks',
+            // stage: 'bids',
             // players: [
             //     'Dustin',
-            //     'Jill'
+            //     'Jill',
+            //     'Diane',
+            //     'Greg'
             // ],
-            // round: 1,
+            // round: 0,
             // rounds: [
-            //     {
-            //         bids: {
-            //             Dustin: 1,
-            //             Jill: 0
-            //         },
-            //         tricks: {
-            //             Dustin: 1,
-            //             Jill: 0
-            //         },
-            //         complete: true
-            //     },
-            //     {
-            //         bids: {
-            //             Dustin: 2,
-            //             Jill: 0
-            //         },
-            //         tricks: {
-            //             Dustin: 0,
-            //             Jill: 2
-            //         },
-            //         complete: true
-            //     }
+                // {
+                //     bids: {
+                //         Dustin: 1,
+                //         Jill: 0
+                //     },
+                //     tricks: {
+                //         Dustin: 1,
+                //         Jill: 0
+                //     },
+                //     complete: true
+                // },
+                // {
+                //     bids: {
+                //         Dustin: 2,
+                //         Jill: 0
+                //     },
+                //     tricks: {
+                //         Dustin: 0,
+                //         Jill: 2
+                //     },
+                //     complete: true
+                // }
             // ],
         }
     }
@@ -133,7 +141,7 @@ class App extends Component {
 
     getNextPlayerToBid() {
         const bids = R.path(['rounds', this.state.round, 'bids'], this.state) || {}
-        const orderedPlayers = getOrderedPlayersForRound(this.state.players, this.state.round)
+        const orderedPlayers = getOrderedPlayersForBidding(this.state.players, this.state.round)
         return orderedPlayers.find(player => bids[player] === undefined)
     }
 
@@ -153,7 +161,8 @@ class App extends Component {
     }
 
     decrementPlayerTrickCount(player) {
-        this.setPlayerTrickCount(player, getPlayerTrickCount(player, this.state.round, this.state) - 1)
+        const newCount = getPlayerTrickCount(player, this.state.round, this.state) - 1
+        this.setPlayerTrickCount(player, Math.max(0, newCount))
     }
 
     completeRound() {
@@ -184,27 +193,33 @@ class App extends Component {
 
         return (
             <div>
-                <h3>Tricks</h3>
                 {this.state.players.map(player =>
                     <div key={player} className="row player-tricks-row">
                         <div className="col-5">
                             {player} ({getPlayerBid(player, this.state.round, this.state)})
                         </div>
                         <div className="col-7 player-tricks-scoring-controls">
-                            <button className="btn btn-lg btn-primary" onClick={() => this.incrementPlayerTrickCount(player)}>+</button>
-                            <span className="player-tricks-count">{getPlayerTrickCount(player, this.state.round, this.state)}</span>
-                            <button className="btn btn-lg btn-primary" onClick={() => this.decrementPlayerTrickCount(player)}>-</button>
+                            <button className="btn btn-lg btn-primary"
+                                    onClick={() => this.incrementPlayerTrickCount(player)}>+
+                            </button>
+                            <span
+                                className="player-tricks-count">{getPlayerTrickCount(player, this.state.round, this.state)}</span>
+                            <button className="btn btn-lg btn-primary"
+                                    onClick={() => this.decrementPlayerTrickCount(player)}>-
+                            </button>
                         </div>
                     </div>
                 )}
-                <button className="btn btn-lg btn-primary" disabled={!roundComplete} onClick={this.completeRound.bind(this)}>Complete Round</button>
+                <button className="btn btn-lg btn-block btn-primary" disabled={!roundComplete}
+                        onClick={this.completeRound.bind(this)}>Complete Round
+                </button>
             </div>
         )
     }
 
     renderBids() {
         const nextPlayerToBid = this.getNextPlayerToBid()
-        const orderedPlayers = getOrderedPlayersForRound(this.state.players, this.state.round)
+        const orderedPlayers = getOrderedPlayersForBidding(this.state.players, this.state.round)
         const playersWithBids = orderedPlayers.filter(player => getPlayerBid(player, this.state.round, this.state) !== undefined)
         const bids = playersWithBids.map(player => ({player, bid: getPlayerBid(player, this.state.round, this.state)}))
 
@@ -215,12 +230,18 @@ class App extends Component {
             maxBidder = maxBid.player
         }
 
+        const dealer = getDealer(this.state.players, this.state.round)
+
         return (
             <div className="bids">
                 {!!nextPlayerToBid && <div>
                     <h2>Bid for {nextPlayerToBid}</h2>
-                    {R.range(0, this.state.round + 2).map(v => <button className="btn btn-lg btn-primary btn-bid" key={v} onClick={() => this.submitBid(nextPlayerToBid, v)}>{v}</button>)}
+                    {R.range(0, this.state.round + 2).map(v => <button className="btn btn-lg btn-primary btn-bid"
+                                                                       key={v}
+                                                                       onClick={() => this.submitBid(nextPlayerToBid, v)}>{v}</button>)}
                 </div>}
+
+                {!bids.length && <p>{dealer} is dealing {this.state.round + 1} card{this.state.round > 0 ? 's' : ''}.<br/>{nextPlayerToBid} bids first.</p>}
 
                 {!!bids.length && <h3>Bids</h3>}
                 {!!bids.length && <ul className="list-unstyled">
@@ -249,13 +270,20 @@ class App extends Component {
                 }
                 <form onSubmit={this.addPlayer.bind(this)}>
                     <div className="form-group">
-                        <label for="player-name-input">Name:</label>
-                        <input className="form-control" id="player-name-input" type="text" onChange={evt => this.updatePlayerInput(evt.target.value)} value={this.state.playerInput}/>
+                        <label htmlFor="player-name-input">Name:</label>
+                        <input className="form-control" id="player-name-input" type="text"
+                               onChange={evt => this.updatePlayerInput(evt.target.value)}
+                               value={this.state.playerInput}/>
                     </div>
                     <div className="form-group">
-                        <button className="add-player-btn btn btn-lg btn-primary" onClick={this.addPlayer.bind(this)}>Add Player</button>
-                        <button className="add-player-btn btn btn-lg btn-success" onClick={this.startGame.bind(this)}>Start</button>
-                        {this.state.playerInputError && <div className="alert alert-danger" style={{color:'red'}}>{this.state.playerInputError}</div>}
+                        <button className="add-player-btn btn btn-lg btn-primary" onClick={this.addPlayer.bind(this)}>
+                            Add Player
+                        </button>
+                        <button className="add-player-btn btn btn-lg btn-success" onClick={this.startGame.bind(this)}>
+                            Start
+                        </button>
+                        {this.state.playerInputError &&
+                        <div className="alert alert-danger" style={{color: 'red'}}>{this.state.playerInputError}</div>}
                     </div>
                 </form>
             </div>
@@ -270,10 +298,15 @@ class App extends Component {
 
         return (
             <div className="scores container">
-                <h3 className="scores-title">Leaderboard</h3>
-                <ul className="list-unstyled">
-                    {leaders.map(({player, score}) => <li key={player}>{player}: {score}</li>)}
-                </ul>
+                <h3 className="scores-title">Leaders</h3>
+                <table className="scores-table">
+                    <tbody>
+                        {leaders.map(({player, score}) => <tr key={player}>
+                            <td className="scores-player-name">{player}</td>
+                            <td>{score}</td>
+                        </tr>)}
+                    </tbody>
+                </table>
             </div>
         )
     }
@@ -295,7 +328,8 @@ class App extends Component {
                 <header>
                     <h1 className="header-title container">
                         <span>Greed</span>
-                        {this.state.stage !== 'input-players' && <small className="text-muted">Round {this.state.round+1}</small>}
+                        {this.state.stage !== 'input-players' &&
+                        <small className="text-muted">Round {this.state.round + 1}</small>}
                     </h1>
                 </header>
                 <div className="stage container">
