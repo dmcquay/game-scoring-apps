@@ -293,7 +293,7 @@ class App extends Component {
     renderLeaderboard() {
         const leaders = getLeaderboard(this.state)
 
-        if (!leaders.length || this.state.stage == 'input-players')
+        if (!leaders.length || this.state.stage === 'input-players')
             return null
 
         return (
