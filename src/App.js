@@ -112,6 +112,9 @@ class App extends Component {
 
     startGame(evt) {
         evt.preventDefault()
+        if (this.state.playerInput) {
+            this.addPlayer(evt)
+        }
         this.setState(state => ({stage: 'bids'}))
         return false
     }
@@ -286,7 +289,7 @@ class App extends Component {
         return (
             <div className="scores">
                 <div className="container">
-                    <h3>Leaders</h3>
+                    <h3 className="scores-title">Leaders</h3>
                     <ul className="scores-list">
                         {leaders.map(({player, score}) => <li key={player}>{player} ({score})</li>)}
                     </ul>
