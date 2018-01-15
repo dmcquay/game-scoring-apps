@@ -297,16 +297,13 @@ class App extends Component {
             return null
 
         return (
-            <div className="scores container">
-                <h3 className="scores-title">Leaders</h3>
-                <table className="scores-table">
-                    <tbody>
-                        {leaders.map(({player, score}) => <tr key={player}>
-                            <td className="scores-player-name">{player}</td>
-                            <td>{score}</td>
-                        </tr>)}
-                    </tbody>
-                </table>
+            <div className="scores">
+                <div className="container">
+                    <h3 className="scores-title">Leaders</h3>
+                    <ul className="scores-list">
+                        {leaders.map(({player, score}) => <li key={player}>{player} ({score})</li>)}
+                    </ul>
+                </div>
             </div>
         )
     }

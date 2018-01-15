@@ -15,7 +15,8 @@ header {
     display: flex;
     justify-content: space-between;
     align-items: baseline;
-    margin: 0;
+    margin-top: 0;
+    margin-bottom: 0;
 }
 
 .add-player-btn {
@@ -36,12 +37,11 @@ header {
     margin-bottom: 0;
 }
 
-.scores-table {
+.scores-list {
     margin-bottom: 10px;
-}
-
-.scores-player-name {
-    padding-right: 10px;
+    column-count: 2;
+    list-style-type: none;
+    padding: 0;
 }
 
 .btn-bid {
@@ -68,7 +68,19 @@ header {
 
 @media only screen
 and (max-device-width : 320px) {
+    body {
+        padding-bottom: 120px;
+    }
+
     header {
         padding: 5px 0;
+    }
+
+    .header-title {
+        font-size: 2rem;
+    }
+
+    .scores-title {
+        display: none;
     }
 }
