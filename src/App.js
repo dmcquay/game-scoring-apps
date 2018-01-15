@@ -233,8 +233,9 @@ class App extends Component {
                                                                        onClick={() => this.submitBid(nextPlayerToBid, v)}>{v}</button>)}
                 </div>}
 
-                {!bids.length && <p>{dealer} is dealing {this.state.round + 1}
-                    card{this.state.round > 0 ? 's' : ''}.<br/>{nextPlayerToBid} bids first.</p>}
+                {!bids.length && <p>
+                    {dealer} is dealing {this.state.round + 1} card{this.state.round > 0 ? 's' : ''}.
+                    <br/>{nextPlayerToBid} bids first.</p>}
 
                 {!!bids.length && <h3>Bids</h3>}
                 {!!bids.length && <ul className="list-unstyled">
