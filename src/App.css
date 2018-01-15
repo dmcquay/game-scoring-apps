@@ -7,6 +7,18 @@ header {
     padding: 10px 0;
 }
 
+h1 {
+    font-size: 2rem;
+}
+
+h2 {
+    font-size: 1.7rem;
+}
+
+h3 {
+    font-size: 1.5rem;
+}
+
 .stage {
     padding-top: 10px;
 }
@@ -17,6 +29,7 @@ header {
     align-items: baseline;
     margin-top: 0;
     margin-bottom: 0;
+    font-size: 2rem;
 }
 
 .add-player-btn {
@@ -30,11 +43,6 @@ header {
     bottom: 0;
     background: lightgrey;
     width: 100%;
-}
-
-.scores-title {
-    margin-right: 20px;
-    margin-bottom: 0;
 }
 
 .scores-list {
@@ -63,7 +71,15 @@ header {
 }
 
 .player-tricks-scoring-controls .btn {
-    width: 48px;
+    width: 38px;
+}
+
+.modal {
+    display: block;
+}
+
+.new-game-btn {
+    align-self: center;
 }
 
 @media only screen
@@ -81,6 +97,15 @@ and (max-device-width : 320px) {
     }
 
     .scores-title {
+        display: none;
+    }
+
+    .player-tricks-row {
+        margin-bottom: 5px;
+        padding-bottom: 5px;
+    }
+
+    .extended-new-game-btn-content {
         display: none;
     }
 }

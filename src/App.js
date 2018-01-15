@@ -57,52 +57,29 @@ export function getOrderedPlayersForBidding(players, round) {
     return players.slice(first).concat(players.slice(0, first))
 }
 
+const DEFAULT_STATE = {
+    stage: 'input-players',
+    showNewGameModal: false,
+    playerInput: '',
+    playerInputError: undefined,
+    players: [],
+    round: 0,
+    rounds: []
+}
+
 class App extends Component {
     constructor(props) {
         super(props)
-        this.state = {
-            stage: 'input-players',
+        this.state = DEFAULT_STATE
 
-            playerInput: '',
-            playerInputError: undefined,
-            players: [],
-            round: 0,
-            rounds: [],
-
-            // jump into a game for testing
-            // stage: 'bids',
-            // players: [
-            //     'Dustin',
-            //     'Jill',
-            //     'Diane',
-            //     'Greg'
-            // ],
-            // round: 0,
-            // rounds: [
-                // {
-                //     bids: {
-                //         Dustin: 1,
-                //         Jill: 0
-                //     },
-                //     tricks: {
-                //         Dustin: 1,
-                //         Jill: 0
-                //     },
-                //     complete: true
-                // },
-                // {
-                //     bids: {
-                //         Dustin: 2,
-                //         Jill: 0
-                //     },
-                //     tricks: {
-                //         Dustin: 0,
-                //         Jill: 2
-                //     },
-                //     complete: true
-                // }
-            // ],
+        const gameStateString = localStorage.getItem('gameState')
+        if (gameStateString) {
+            this.state = JSON.parse(gameStateString)
         }
+    }
+
+    componentWillUpdate(_, nextState) {
+        localStorage.setItem('gameState', JSON.stringify(nextState))
     }
 
     updatePlayerInput(name) {
@@ -182,6 +159,18 @@ class App extends Component {
         }))
     }
 
+    showNewGameModal() {
+        this.setState(state => ({showNewGameModal: true}))
+    }
+
+    closeNewGameModal() {
+        this.setState(state => ({showNewGameModal: false}))
+    }
+
+    startNewGame() {
+        this.setState(state => DEFAULT_STATE)
+    }
+
     renderTricks() {
         const trickSum = R.compose(
             R.sum,
@@ -195,22 +184,22 @@ class App extends Component {
             <div>
                 {this.state.players.map(player =>
                     <div key={player} className="row player-tricks-row">
-                        <div className="col-5">
+                        <div className="col-6">
                             {player} ({getPlayerBid(player, this.state.round, this.state)})
                         </div>
-                        <div className="col-7 player-tricks-scoring-controls">
-                            <button className="btn btn-lg btn-primary"
+                        <div className="col-6 player-tricks-scoring-controls">
+                            <button className="btn btn-primary"
                                     onClick={() => this.incrementPlayerTrickCount(player)}>+
                             </button>
                             <span
                                 className="player-tricks-count">{getPlayerTrickCount(player, this.state.round, this.state)}</span>
-                            <button className="btn btn-lg btn-primary"
+                            <button className="btn btn-primary"
                                     onClick={() => this.decrementPlayerTrickCount(player)}>-
                             </button>
                         </div>
                     </div>
                 )}
-                <button className="btn btn-lg btn-block btn-primary" disabled={!roundComplete}
+                <button className="btn btn-block btn-primary" disabled={!roundComplete}
                         onClick={this.completeRound.bind(this)}>Complete Round
                 </button>
             </div>
@@ -236,12 +225,13 @@ class App extends Component {
             <div className="bids">
                 {!!nextPlayerToBid && <div>
                     <h2>Bid for {nextPlayerToBid}</h2>
-                    {R.range(0, this.state.round + 2).map(v => <button className="btn btn-lg btn-primary btn-bid"
+                    {R.range(0, this.state.round + 2).map(v => <button className="btn btn-primary btn-bid"
                                                                        key={v}
                                                                        onClick={() => this.submitBid(nextPlayerToBid, v)}>{v}</button>)}
                 </div>}
 
-                {!bids.length && <p>{dealer} is dealing {this.state.round + 1} card{this.state.round > 0 ? 's' : ''}.<br/>{nextPlayerToBid} bids first.</p>}
+                {!bids.length && <p>{dealer} is dealing {this.state.round + 1}
+                    card{this.state.round > 0 ? 's' : ''}.<br/>{nextPlayerToBid} bids first.</p>}
 
                 {!!bids.length && <h3>Bids</h3>}
                 {!!bids.length && <ul className="list-unstyled">
@@ -250,7 +240,7 @@ class App extends Component {
 
                 {!nextPlayerToBid && <div>
                     <p>All bids are in. {maxBidder} goes first.</p>
-                    <button onClick={this.doneBidding.bind(this)} className="btn btn-lg btn-primary">Continue</button>
+                    <button onClick={this.doneBidding.bind(this)} className="btn btn-primary">Continue</button>
                 </div>}
             </div>
         )
@@ -261,25 +251,22 @@ class App extends Component {
             <div>
                 <h2>Players</h2>
                 {this.state.players.length
-                    ? <div>
-                        <ul>
-                            {this.state.players.map(player => <li key={player}>{player}</li>)}
-                        </ul>
-                    </div>
+                    ? <ul>
+                        {this.state.players.map(player => <li key={player}>{player}</li>)}
+                    </ul>
                     : <p>No players yet.</p>
                 }
                 <form onSubmit={this.addPlayer.bind(this)}>
                     <div className="form-group">
-                        <label htmlFor="player-name-input">Name:</label>
-                        <input className="form-control" id="player-name-input" type="text"
+                        <input className="form-control" id="player-name-input" type="text" placeholder="Player name"
                                onChange={evt => this.updatePlayerInput(evt.target.value)}
                                value={this.state.playerInput}/>
                     </div>
                     <div className="form-group">
-                        <button className="add-player-btn btn btn-lg btn-primary" onClick={this.addPlayer.bind(this)}>
+                        <button className="add-player-btn btn btn-primary" onClick={this.addPlayer.bind(this)}>
                             Add Player
                         </button>
-                        <button className="add-player-btn btn btn-lg btn-success" onClick={this.startGame.bind(this)}>
+                        <button className="add-player-btn btn btn-success" onClick={this.startGame.bind(this)}>
                             Start
                         </button>
                         {this.state.playerInputError &&
@@ -299,11 +286,46 @@ class App extends Component {
         return (
             <div className="scores">
                 <div className="container">
-                    <h3 className="scores-title">Leaders</h3>
+                    <h3>Leaders</h3>
                     <ul className="scores-list">
                         {leaders.map(({player, score}) => <li key={player}>{player} ({score})</li>)}
                     </ul>
                 </div>
+            </div>
+        )
+    }
+
+    renderNewGameModal() {
+        if (!this.state.showNewGameModal)
+            return null
+
+        return (
+            <div>
+                <div className="modal show" tabindex="-1" role="dialog">
+                    <div className="modal-dialog" role="document">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h5 className="modal-title">New Game</h5>
+                                <button type="button" class="close" aria-label="Close"
+                                        onClick={this.closeNewGameModal.bind(this)}>
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <p>Are you sure you want to start a new game? Current game progress will be lost.</p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-primary" onClick={this.startNewGame.bind(this)}>
+                                    Yes, new game
+                                </button>
+                                <button type="button" class="btn btn-secondary"
+                                        onClick={this.closeNewGameModal.bind(this)}>Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div className="modal-backdrop show"></div>
             </div>
         )
     }
@@ -325,6 +347,10 @@ class App extends Component {
                 <header>
                     <h1 className="header-title container">
                         <span>Greed</span>
+                        <button className="btn btn-sm btn-success new-game-btn"
+                                onClick={this.showNewGameModal.bind(this)}>
+                            New <span className="extended-new-game-btn-content">Game</span>
+                        </button>
                         {this.state.stage !== 'input-players' &&
                         <small className="text-muted">Round {this.state.round + 1}</small>}
                     </h1>
@@ -333,6 +359,7 @@ class App extends Component {
                     {renderedStage}
                 </div>
                 {this.renderLeaderboard()}
+                {this.renderNewGameModal()}
             </main>
         )
     }
