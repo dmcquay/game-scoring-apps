@@ -3,7 +3,7 @@ body {
 }
 
 header {
-    background: lightgrey;
+    background: orange;
     padding: 10px 0;
 }
 
@@ -19,17 +19,51 @@ h3 {
     font-size: 1.5rem;
 }
 
+.menu-cta {
+    cursor: pointer;
+    height: 25px;
+    margin-right: 12px;
+}
+
+.menu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    background: lightgrey;
+    box-shadow: 0 0 3px rgba(0,0,0,.6);
+}
+
+.menu ul {
+    list-style-type: none;
+    padding: 0 10px;
+}
+
+.menu li {
+    border-bottom: 1px solid grey;
+    padding: 10px;
+}
+
+.menu li:last-of-type {
+    border-bottom: none;
+}
+
 .stage {
     padding-top: 10px;
 }
 
-.header-title {
+.header-container {
     display: flex;
     justify-content: space-between;
     align-items: baseline;
+}
+
+.header-title {
     margin-top: 0;
     margin-bottom: 0;
     font-size: 2rem;
+    display: flex;
+    align-items: baseline;
 }
 
 .add-player-btn {
@@ -62,6 +96,9 @@ h3 {
     line-height: 40px;
     border-bottom: 1px solid lightgrey;
     padding-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
 }
 
 .player-tricks-count {
@@ -71,15 +108,16 @@ h3 {
 }
 
 .player-tricks-scoring-controls .btn {
-    width: 38px;
+    width: 48px;
 }
 
 .modal {
     display: block;
 }
 
-.new-game-btn {
-    align-self: center;
+.rules-modal-body {
+    height: calc(100vh - 160px);
+    overflow: scroll;
 }
 
 @media only screen
@@ -103,9 +141,5 @@ and (max-device-width : 320px) {
     .player-tricks-row {
         margin-bottom: 5px;
         padding-bottom: 5px;
-    }
-
-    .extended-new-game-btn-content {
-        display: none;
     }
 }

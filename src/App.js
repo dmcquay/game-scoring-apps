@@ -1,6 +1,9 @@
 import React, {Component} from 'react'
 import * as R from 'ramda'
 
+import GreedRules from './GreedRules'
+import Menu from './Menu'
+import menuIcon from './menu.svg'
 import './App.css'
 
 function getPlayerTrickCount(player, round, state) {
@@ -59,7 +62,9 @@ export function getOrderedPlayersForBidding(players, round) {
 
 const DEFAULT_STATE = {
     stage: 'input-players',
+    showMenu: false,
     showNewGameModal: false,
+    showRulesModal: false,
     playerInput: '',
     playerInputError: undefined,
     players: [],
@@ -162,6 +167,22 @@ class App extends Component {
         }))
     }
 
+    openMenu() {
+        this.setState(state => ({showMenu: true}))
+    }
+
+    closeMenu() {
+        this.setState(state => ({showMenu: false}))
+    }
+
+    showRulesModal() {
+        this.setState(state => ({showRulesModal: true}))
+    }
+
+    closeRulesModal() {
+        this.setState(state => ({showRulesModal: false}))
+    }
+
     showNewGameModal() {
         this.setState(state => ({showNewGameModal: true}))
     }
@@ -186,23 +207,23 @@ class App extends Component {
         return (
             <div>
                 {this.state.players.map(player =>
-                    <div key={player} className="row player-tricks-row">
-                        <div className="col-6">
+                    <div key={player} className="player-tricks-row">
+                        <div className="">
                             {player} ({getPlayerBid(player, this.state.round, this.state)})
                         </div>
-                        <div className="col-6 player-tricks-scoring-controls">
-                            <button className="btn btn-primary"
+                        <div className="player-tricks-scoring-controls">
+                            <button className="btn btn-lg btn-primary"
                                     onClick={() => this.incrementPlayerTrickCount(player)}>+
                             </button>
                             <span
                                 className="player-tricks-count">{getPlayerTrickCount(player, this.state.round, this.state)}</span>
-                            <button className="btn btn-primary"
+                            <button className="btn btn-lg btn-primary"
                                     onClick={() => this.decrementPlayerTrickCount(player)}>-
                             </button>
                         </div>
                     </div>
                 )}
-                <button className="btn btn-block btn-primary" disabled={!roundComplete}
+                <button className="btn btn-lg btn-block btn-primary" disabled={!roundComplete}
                         onClick={this.completeRound.bind(this)}>Complete Round
                 </button>
             </div>
@@ -228,7 +249,7 @@ class App extends Component {
             <div className="bids">
                 {!!nextPlayerToBid && <div>
                     <h2>Bid for {nextPlayerToBid}</h2>
-                    {R.range(0, this.state.round + 2).map(v => <button className="btn btn-primary btn-bid"
+                    {R.range(0, this.state.round + 2).map(v => <button className="btn btn-lg btn-primary btn-bid"
                                                                        key={v}
                                                                        onClick={() => this.submitBid(nextPlayerToBid, v)}>{v}</button>)}
                 </div>}
@@ -244,7 +265,7 @@ class App extends Component {
 
                 {!nextPlayerToBid && <div>
                     <p>All bids are in. {maxBidder} goes first.</p>
-                    <button onClick={this.doneBidding.bind(this)} className="btn btn-primary">Continue</button>
+                    <button onClick={this.doneBidding.bind(this)} className="btn btn-lg btn-primary">Continue</button>
                 </div>}
             </div>
         )
@@ -319,11 +340,43 @@ class App extends Component {
                                 <p>Are you sure you want to start a new game? Current game progress will be lost.</p>
                             </div>
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-primary" onClick={this.startNewGame.bind(this)}>
+                                <button type="button" class="btn btn-lg btn-primary" onClick={this.startNewGame.bind(this)}>
                                     Yes, new game
                                 </button>
-                                <button type="button" class="btn btn-secondary"
+                                <button type="button" class="btn btn-lg btn-secondary"
                                         onClick={this.closeNewGameModal.bind(this)}>Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div className="modal-backdrop show"></div>
+            </div>
+        )
+    }
+
+    renderRulesModal() {
+        if (!this.state.showRulesModal)
+            return null
+
+        return (
+            <div>
+                <div className="modal show" tabindex="-1" role="dialog">
+                    <div className="modal-dialog" role="document">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h5 className="modal-title">Rules of Greed</h5>
+                                <button type="button" class="close" aria-label="Close"
+                                        onClick={this.closeRulesModal.bind(this)}>
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body rules-modal-body">
+                                <GreedRules/>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-lg btn-primary" onClick={this.closeRulesModal.bind(this)}>
+                                    Got it
                                 </button>
                             </div>
                         </div>
@@ -346,25 +399,34 @@ class App extends Component {
         else if (stage === 'tricks')
             renderedStage = this.renderTricks()
 
+        const menuProps = {
+            onClose: this.closeMenu.bind(this),
+            onShowRules: this.showRulesModal.bind(this),
+            onNewGame: this.showNewGameModal.bind(this)
+        }
+
         return (
-            <main>
-                <header>
-                    <h1 className="header-title container">
-                        <span>Greed</span>
-                        <button className="btn btn-sm btn-success new-game-btn"
-                                onClick={this.showNewGameModal.bind(this)}>
-                            New <span className="extended-new-game-btn-content">Game</span>
-                        </button>
-                        {this.state.stage !== 'input-players' &&
-                        <small className="text-muted">Round {this.state.round + 1}</small>}
-                    </h1>
-                </header>
-                <div className="stage container">
-                    {renderedStage}
-                </div>
-                {this.renderLeaderboard()}
+            <div>
+                <main>
+                    <header>
+                        <div className="header-container container">
+                            <h1 className="header-title">
+                                <img className="menu-cta" onClick={this.openMenu.bind(this)} src={menuIcon} alt=""/>
+                                <span>Greed</span>
+                            </h1>
+                            {this.state.stage !== 'input-players' &&
+                            <h3>Round {this.state.round + 1}</h3>}
+                        </div>
+                    </header>
+                    <div className="stage container">
+                        {renderedStage}
+                    </div>
+                    {this.renderLeaderboard()}
+                </main>
                 {this.renderNewGameModal()}
-            </main>
+                {this.renderRulesModal()}
+                {this.state.showMenu && <Menu {...menuProps} />}
+            </div>
         )
     }
 }
