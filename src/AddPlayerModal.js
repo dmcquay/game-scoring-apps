@@ -50,6 +50,7 @@ export default class AddPlayerModal extends React.Component {
                             </div>
                             <div className="modal-footer">
                                 <button type="button" className="btn btn-lg btn-primary" onClick={this.addPlayer}>Add Player</button>
+                                <button type="button" className="btn btn-lg btn-secondary" onClick={onClose}>Cancel</button>
                             </div>
                         </div>
                     </div>

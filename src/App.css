@@ -56,6 +56,8 @@ h3 {
     display: flex;
     justify-content: space-between;
     align-items: baseline;
+    position: relative;
+    top: 3px;
 }
 
 .header-title {
@@ -116,7 +118,7 @@ h3 {
 }
 
 .rules-modal-body {
-    height: calc(100vh - 160px);
+    height: calc(100vh - 80px);
     overflow: scroll;
 }
 

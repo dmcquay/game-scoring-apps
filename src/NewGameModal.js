@@ -24,8 +24,7 @@ export default function NewGameModal(props) {
                             <button type="button" className="btn btn-lg btn-primary" onClick={onNewGame}>
                                 Yes, new game
                             </button>
-                            <button type="button" className="btn btn-lg btn-secondary" onClick={onClose}>Cancel
-                            </button>
+                            <button type="button" className="btn btn-lg btn-secondary" onClick={onClose}>Cancel</button>
                         </div>
                     </div>
                 </div>

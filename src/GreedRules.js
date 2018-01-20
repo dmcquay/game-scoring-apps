@@ -11,7 +11,7 @@ export default function GreedRules(props) {
 
             <h3>The Bidding Phase</h3>
 
-            <p>The begging phase is next, but to understand bidding, you must first understand the next phase (the
+            <p>The bidding phase is next, but to understand bidding, you must first understand the next phase (the
                 “Tricks” phase), so we’ll come back to bidding in a moment.</p>
 
             <h3>The Tricks Phase</h3>
@@ -21,7 +21,7 @@ export default function GreedRules(props) {
                 We’ll call this the leading suit. To win the trick, a subsequent player must play a larger card of the
                 same suit (or of the trump suit, which we’ll explain in a moment).</p>
 
-            <p>If a player has a card of the leading suit, she must play that card of that suit.</p>
+            <p>If a player has a card of the leading suit, she must play a card of that suit.</p>
 
             <p>For the first trick of the round, the player who bids highest plays first. After that, the winner of the
                 previous trick plays first.</p>

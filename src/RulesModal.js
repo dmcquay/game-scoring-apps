@@ -21,9 +21,6 @@ export default function RulesModal(props) {
                         <div className="modal-body rules-modal-body">
                             <GreedRules/>
                         </div>
-                        <div className="modal-footer">
-                            <button type="button" className="btn btn-lg btn-primary" onClick={onClose}>Got it</button>
-                        </div>
                     </div>
                 </div>
             </div>
