@@ -1,75 +1,33 @@
 import React, {Component} from 'react'
 import * as R from 'ramda'
 
-import GreedRules from './GreedRules'
 import Menu from './Menu'
+import NewGameModal from './NewGameModal'
+import RulesModal from './RulesModal'
+import AddPlayerModal from './AddPlayerModal'
 import menuIcon from './menu.svg'
 import './App.css'
-
-function getPlayerTrickCount(player, round, state) {
-    return R.path(['rounds', round, 'tricks', player], state) || 0
-}
-
-function getPlayerBid(player, round, state) {
-    return R.path(['rounds', round, 'bids', player], state)
-}
-
-function getCompletedRoundsCount(state) {
-    const completeRounds = R.compose(
-        R.filter(R.prop('complete')),
-        R.prop('rounds')
-    )(state)
-
-    return completeRounds.length
-}
-
-function computeScoreForPlayerRound(player, round, state) {
-    const bid = getPlayerBid(player, round, state)
-    const tricks = getPlayerTrickCount(player, round, state)
-    if (tricks >= bid)
-        return (bid * 3) + (tricks - bid)
-    else
-        return bid * -3
-}
-
-function getPlayerTotalScore(player, state) {
-    const numRounds = getCompletedRoundsCount(state)
-    let totalScore = 0
-    for (let round = 0; round < numRounds; round++) {
-        totalScore += computeScoreForPlayerRound(player, round, state)
-    }
-    return totalScore
-}
-
-function getLeaderboard(state) {
-    const playerScores = state.players.map(player => {
-        const score = getPlayerTotalScore(player, state)
-        return {player, score}
-    })
-
-    return R.reverse(R.sortBy(R.prop('score'), playerScores))
-}
-
-export function getDealer(players, round) {
-    const idx = round % players.length
-    return players[idx]
-}
-
-export function getOrderedPlayersForBidding(players, round) {
-    const first = (round + 1) % players.length
-    return players.slice(first).concat(players.slice(0, first))
-}
+import {
+    getPlayerTrickCount,
+    getPlayerBid,
+    getLeaderboard,
+    getDealer,
+    getOrderedPlayersForBidding
+} from './selectors'
+import localStorage from './local-storage'
 
 const DEFAULT_STATE = {
     stage: 'input-players',
     showMenu: false,
     showNewGameModal: false,
     showRulesModal: false,
+    showAddPlayerModal: false,
     playerInput: '',
     playerInputError: undefined,
     players: [],
     round: 0,
-    rounds: []
+    rounds: [],
+    initialPoints: {}
 }
 
 class App extends Component {
@@ -191,8 +149,29 @@ class App extends Component {
         this.setState(state => ({showNewGameModal: false}))
     }
 
+    showAddPlayerModal() {
+        this.setState(state => ({showAddPlayerModal: true}))
+    }
+
+    closeAddPlayerModal() {
+        this.setState(state => ({showAddPlayerModal: false}))
+    }
+
     startNewGame() {
         this.setState(state => DEFAULT_STATE)
+    }
+
+    addPlayerMidGame(playerName, initialPoints) {
+        this.setState(state => ({
+            players: [
+                ...this.state.players,
+                playerName
+            ],
+            initialPoints: {
+                ...this.state.initialPoints,
+                [playerName]: parseInt(initialPoints, 10)
+            }
+        }))
     }
 
     renderTricks() {
@@ -260,7 +239,7 @@ class App extends Component {
 
                 {!!bids.length && <h3>Bids</h3>}
                 {!!bids.length && <ul className="list-unstyled">
-                    {bids.map(({player, bid}) => <li>{player}: {bid}</li>)}
+                    {bids.map(({player, bid}) => <li key={`bid-list-item-${player}`}>{player}: {bid}</li>)}
                 </ul>}
 
                 {!nextPlayerToBid && <div>
@@ -324,67 +303,27 @@ class App extends Component {
         if (!this.state.showNewGameModal)
             return null
 
-        return (
-            <div>
-                <div className="modal show" tabindex="-1" role="dialog">
-                    <div className="modal-dialog" role="document">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <h5 className="modal-title">New Game</h5>
-                                <button type="button" class="close" aria-label="Close"
-                                        onClick={this.closeNewGameModal.bind(this)}>
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-                            <div class="modal-body">
-                                <p>Are you sure you want to start a new game? Current game progress will be lost.</p>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-lg btn-primary" onClick={this.startNewGame.bind(this)}>
-                                    Yes, new game
-                                </button>
-                                <button type="button" class="btn btn-lg btn-secondary"
-                                        onClick={this.closeNewGameModal.bind(this)}>Cancel
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div className="modal-backdrop show"></div>
-            </div>
-        )
+        return <NewGameModal
+            onClose={this.closeNewGameModal.bind(this)}
+            onNewGame={this.startNewGame.bind(this)}
+        />
     }
 
     renderRulesModal() {
         if (!this.state.showRulesModal)
             return null
 
-        return (
-            <div>
-                <div className="modal show" tabindex="-1" role="dialog">
-                    <div className="modal-dialog" role="document">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <h5 className="modal-title">Rules of Greed</h5>
-                                <button type="button" class="close" aria-label="Close"
-                                        onClick={this.closeRulesModal.bind(this)}>
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-                            <div class="modal-body rules-modal-body">
-                                <GreedRules/>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-lg btn-primary" onClick={this.closeRulesModal.bind(this)}>
-                                    Got it
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div className="modal-backdrop show"></div>
-            </div>
-        )
+        return <RulesModal onClose={this.closeRulesModal.bind(this)}/>
+    }
+
+    renderAddPlayerModal() {
+        if (!this.state.showAddPlayerModal)
+            return null
+
+        return <AddPlayerModal
+            onClose={this.closeAddPlayerModal.bind(this)}
+            onAddPlayer={this.addPlayerMidGame.bind(this)}
+        />
     }
 
     render() {
@@ -402,7 +341,8 @@ class App extends Component {
         const menuProps = {
             onClose: this.closeMenu.bind(this),
             onShowRules: this.showRulesModal.bind(this),
-            onNewGame: this.showNewGameModal.bind(this)
+            onNewGame: this.showNewGameModal.bind(this),
+            onAddPlayer: this.showAddPlayerModal.bind(this)
         }
 
         return (
@@ -414,8 +354,7 @@ class App extends Component {
                                 <img className="menu-cta" onClick={this.openMenu.bind(this)} src={menuIcon} alt=""/>
                                 <span>Greed</span>
                             </h1>
-                            {this.state.stage !== 'input-players' &&
-                            <h3>Round {this.state.round + 1}</h3>}
+                            {this.state.stage !== 'input-players' && <h3>Round {this.state.round + 1}</h3>}
                         </div>
                     </header>
                     <div className="stage container">
@@ -425,6 +364,7 @@ class App extends Component {
                 </main>
                 {this.renderNewGameModal()}
                 {this.renderRulesModal()}
+                {this.renderAddPlayerModal()}
                 {this.state.showMenu && <Menu {...menuProps} />}
             </div>
         )

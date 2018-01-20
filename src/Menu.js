@@ -12,6 +12,7 @@ export default function Menu(props) {
         <nav className="menu">
             <ul>
                 <li onClick={closeThen(props.onNewGame)}>New Game</li>
+                <li onClick={closeThen(props.onAddPlayer)}>Add Player</li>
                 <li onClick={closeThen(props.onShowRules)}>Rules</li>
                 <li onClick={props.onClose}>Close Menu</li>
             </ul>

@@ -56,7 +56,7 @@ export default function GreedRules(props) {
 
             <p>Let’s look at a few scoring examples:</p>
 
-            <table class="table">
+            <table className="table">
                 <thead>
                 <tr>
                     <th>Bid</th>
