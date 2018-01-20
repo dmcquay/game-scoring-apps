@@ -1,6 +1,6 @@
 import React from 'react'
 
-export default function GreedRules(props) {
+export default function GreedRules() {
     return (
         <div className="rules">
             <h3>Getting Started</h3>
