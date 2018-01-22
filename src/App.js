@@ -4,6 +4,7 @@ import * as R from 'ramda'
 import Menu from './Menu'
 import NewGameModal from './NewGameModal'
 import RulesModal from './RulesModal'
+import Grid from './Grid'
 import AddPlayerModal from './AddPlayerModal'
 import menuIcon from './menu.svg'
 import './App.css'
@@ -12,7 +13,8 @@ import {
     getPlayerBid,
     getLeaderboard,
     getDealer,
-    getOrderedPlayersForBidding
+    getOrderedPlayersForBidding,
+    getCompletedRounds
 } from './selectors'
 import localStorage from './local-storage'
 
@@ -22,6 +24,7 @@ const DEFAULT_STATE = {
     showNewGameModal: false,
     showRulesModal: false,
     showAddPlayerModal: false,
+    showGrid: false,
     playerInput: '',
     playerInputError: undefined,
     players: [],
@@ -29,6 +32,8 @@ const DEFAULT_STATE = {
     rounds: [],
     initialPoints: {}
 }
+
+const previousStates = []
 
 class App extends Component {
     constructor(props) {
@@ -57,10 +62,21 @@ class App extends Component {
         }))
     }
 
+    undo() {
+        if (!previousStates.length) {
+            console.log('Nothing left to undo')
+            return
+        }
+        const prevState = previousStates.pop()
+        console.log('restoring state', prevState)
+        this.setState(prevState)
+    }
+
     addPlayer(evt) {
         evt.preventDefault()
 
         if (!this.state.playerInputError) {
+            previousStates.push(this.state)
             this.setState(state => ({
                 players: [
                     ...state.players,
@@ -78,6 +94,7 @@ class App extends Component {
         if (this.state.playerInput) {
             this.addPlayer(evt)
         }
+        previousStates.push(this.state)
         this.setState(state => ({stage: 'bids'}))
         return false
     }
@@ -89,6 +106,7 @@ class App extends Component {
     }
 
     submitBid(player, bid) {
+        previousStates.push(this.state)
         this.setState(state => {
             return R.set(R.lensPath(['rounds', state.round, 'bids', player]), bid, state)
         })
@@ -109,6 +127,7 @@ class App extends Component {
     }
 
     completeRound() {
+        previousStates.push(this.state)
         this.setState(state => {
             return R.compose(
                 R.set(R.lensPath(['rounds', state.round, 'complete']), true),
@@ -119,10 +138,19 @@ class App extends Component {
     }
 
     doneBidding() {
+        previousStates.push(this.state)
         this.setState(state => ({
             ...state,
             stage: 'tricks'
         }))
+    }
+
+    showGrid() {
+        this.setState(state => ({showGrid: true}))
+    }
+
+    hideGrid() {
+        this.setState(state => ({showGrid: false}))
     }
 
     openMenu() {
@@ -342,7 +370,9 @@ class App extends Component {
             onClose: this.closeMenu.bind(this),
             onShowRules: this.showRulesModal.bind(this),
             onNewGame: this.showNewGameModal.bind(this),
-            onAddPlayer: this.showAddPlayerModal.bind(this)
+            onAddPlayer: this.showAddPlayerModal.bind(this),
+            onShowGrid: this.showGrid.bind(this),
+            onUndo: this.undo.bind(this)
         }
 
         return (
@@ -358,7 +388,12 @@ class App extends Component {
                         </div>
                     </header>
                     <div className="stage container">
-                        {renderedStage}
+                        {this.state.showGrid
+                            ? <Grid players={this.state.players}
+                                    completedRounds={getCompletedRounds(this.state)}
+                                    onClose={this.hideGrid.bind(this)}/>
+                            : renderedStage
+                        }
                     </div>
                     {this.renderLeaderboard()}
                 </main>

@@ -17,6 +17,11 @@ export function getCompletedRoundsCount(state) {
     return completeRounds.length
 }
 
+export function getCompletedRounds(state) {
+    const count = getCompletedRoundsCount(state)
+    return state.rounds.slice(0, count)
+}
+
 export function computeScoreForPlayerRound(player, round, state) {
     const bid = getPlayerBid(player, round, state)
     const tricks = getPlayerTrickCount(player, round, state)
