@@ -382,7 +382,7 @@ class App extends Component {
                         <div className="header-container container">
                             <h1 className="header-title">
                                 <img className="menu-cta" onClick={this.openMenu.bind(this)} src={menuIcon} alt=""/>
-                                <span>Greed</span>
+                                <span>Greed Modified</span>
                             </h1>
                             {this.state.stage !== 'input-players' && <h3>Round {this.state.round + 1}</h3>}
                         </div>
