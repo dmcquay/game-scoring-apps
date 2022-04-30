@@ -1,7 +1,23 @@
 {
-  "main.css": "static/css/main.12d6f00d.css",
-  "main.css.map": "static/css/main.12d6f00d.css.map",
-  "main.js": "static/js/main.af936e28.js",
-  "main.js.map": "static/js/main.af936e28.js.map",
-  "static/media/menu.svg": "static/media/menu.0db3c92e.svg"
+  "files": {
+    "main.css": "/game-scoring-apps/static/css/main.83771e61.chunk.css",
+    "main.js": "/game-scoring-apps/static/js/main.3b55448e.chunk.js",
+    "main.js.map": "/game-scoring-apps/static/js/main.3b55448e.chunk.js.map",
+    "runtime-main.js": "/game-scoring-apps/static/js/runtime-main.549615fc.js",
+    "runtime-main.js.map": "/game-scoring-apps/static/js/runtime-main.549615fc.js.map",
+    "static/js/2.1741594b.chunk.js": "/game-scoring-apps/static/js/2.1741594b.chunk.js",
+    "static/js/2.1741594b.chunk.js.map": "/game-scoring-apps/static/js/2.1741594b.chunk.js.map",
+    "index.html": "/game-scoring-apps/index.html",
+    "precache-manifest.f81f07fdc81f7ee13356d73bdb083e5c.js": "/game-scoring-apps/precache-manifest.f81f07fdc81f7ee13356d73bdb083e5c.js",
+    "service-worker.js": "/game-scoring-apps/service-worker.js",
+    "static/css/main.83771e61.chunk.css.map": "/game-scoring-apps/static/css/main.83771e61.chunk.css.map",
+    "static/js/2.1741594b.chunk.js.LICENSE.txt": "/game-scoring-apps/static/js/2.1741594b.chunk.js.LICENSE.txt",
+    "static/media/menu.svg": "/game-scoring-apps/static/media/menu.0db3c92e.svg"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.549615fc.js",
+    "static/js/2.1741594b.chunk.js",
+    "static/css/main.83771e61.chunk.css",
+    "static/js/main.3b55448e.chunk.js"
+  ]
 }
