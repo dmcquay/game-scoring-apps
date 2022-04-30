@@ -1,23 +1,23 @@
 self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
-    "revision": "f2f567ba235294f9825b1cb7b185cf21",
+    "revision": "8f8fc78bf2881bb346245d56e9796db5",
     "url": "/game-scoring-apps/index.html"
   },
   {
-    "revision": "1ce075020aa34df1e182",
+    "revision": "549bf5617d5f21dc4c5d",
     "url": "/game-scoring-apps/static/css/main.83771e61.chunk.css"
   },
   {
-    "revision": "2d40147e768e80eeb199",
-    "url": "/game-scoring-apps/static/js/2.1741594b.chunk.js"
+    "revision": "a1e77592b14999f0d801",
+    "url": "/game-scoring-apps/static/js/2.73e4aa92.chunk.js"
   },
   {
     "revision": "e88a3e95b5364d46e95b35ae8c0dc27d",
-    "url": "/game-scoring-apps/static/js/2.1741594b.chunk.js.LICENSE.txt"
+    "url": "/game-scoring-apps/static/js/2.73e4aa92.chunk.js.LICENSE.txt"
   },
   {
-    "revision": "1ce075020aa34df1e182",
-    "url": "/game-scoring-apps/static/js/main.3b55448e.chunk.js"
+    "revision": "549bf5617d5f21dc4c5d",
+    "url": "/game-scoring-apps/static/js/main.0332a76b.chunk.js"
   },
   {
     "revision": "20b89638398706e38fcf",
