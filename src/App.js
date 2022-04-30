@@ -1,22 +1,22 @@
 import React from 'react'
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { HashRouter, Routes, Route } from "react-router-dom";
 
 import Greed from './greed/Greed'
 import Roster from './roster/Roster'
 
 function AppsList() {
   return <ul>
-    <li><a href="/game-scoring-apps/greed">Greed</a></li>
-    <li><a href="/game-scoring-apps/roster">Roster</a></li>
+    <li><a href="#/greed">Greed</a></li>
+    <li><a href="#/roster">Roster</a></li>
   </ul>
 }
 
 export default function App() {
-  return <BrowserRouter>
+  return <HashRouter>
     <Routes>
-      <Route path="/game-scoring-apps" element={<AppsList />} />
-      <Route path="/game-scoring-apps/greed" element={<Greed />} />
-      <Route path="/game-scoring-apps/roster" element={<Roster />} />
+      <Route path="/" element={<AppsList />} />
+      <Route path="/greed" element={<Greed />} />
+      <Route path="/roster" element={<Roster />} />
     </Routes>
-  </BrowserRouter>
+  </HashRouter>
 }
