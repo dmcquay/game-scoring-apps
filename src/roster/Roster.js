@@ -9,7 +9,8 @@ const DEFAULT_STATE = {
   playerFormName: '',
   isPlaying: false,
   playTimeStart: undefined,
-  totalGameTime: 0
+  totalGameTime: 0,
+  editMode: false
 }
 
 const getInitialState = () => {
@@ -147,6 +148,41 @@ export default () => {
     })
   }
 
+  const toggleEditMode = () => {
+    setState(state => {
+      return {
+        ...state,
+        editMode: !state.editMode
+      }
+    })
+  }
+
+  const setName = (playerId) => (name) => {
+    setState(state => {
+      return {
+        ...state,
+        players: {
+          ...state.players,
+          [playerId]: {
+            ...state.players[playerId],
+            name
+          }
+        }
+      }
+    })
+  }
+
+  const deletePlayer = (playerId) => () => {
+    setState(state => {
+      const players = {...state.players}
+      delete players[playerId]
+      return {
+        ...state,
+        players
+      }
+    })
+  }
+
   const players = R.sortBy(R.prop('playTimeMillis'), Object.values(state.players))
   const inPlay = players.filter(x => x.isPlaying)
   const onTheBench = players.filter(x => !x.isPlaying)
@@ -155,14 +191,20 @@ export default () => {
   const avgPlayTime = totalPlayTime / players.length
 
   return <div>
-    <input type="text" value={state.playerFormName} onChange={setPlayerFormName} />
-    <button onClick={addPlayer}>Add Player</button>
+    {state.editMode &&
+      <div>
+        <input type="text" value={state.playerFormName} onChange={setPlayerFormName} />
+        <button onClick={addPlayer}>Add Player</button>
+      </div>
+    }
+    
     <div>In Play</div>
-    <PlayerList {...{players: inPlay, togglePlayerIsPlaying, avgPlayTime}} />
+    <PlayerList {...{players: inPlay, togglePlayerIsPlaying, avgPlayTime, editMode: state.editMode, setName, deletePlayer}} />
     <div>On the Bench</div>
-    <PlayerList {...{players: onTheBench, togglePlayerIsPlaying, avgPlayTime}} />
+    <PlayerList {...{players: onTheBench, togglePlayerIsPlaying, avgPlayTime, editMode: state.editMode, setName, deletePlayer}} />
     <button onClick={toggleIsPlaying}>{state.isPlaying ? 'Pause' : 'Play'}</button>
     <button onClick={newGame}>New Game</button>
+    <button onClick={toggleEditMode}>{state.editMode ? 'Done Editing' : 'Edit Players'}</button>
     <div>Total Game Time: {formatDuration(state.totalGameTime)}</div>
   </div>
 }
@@ -173,7 +215,7 @@ const PLAYER_STYLE_MAP = {
   OVERPLAYED: { backgroundColor: 'pink' }
 }
 
-const Player = ({player, togglePlayerIsPlaying, avgPlayTime}) => {
+const Player = ({player, togglePlayerIsPlaying, avgPlayTime, editMode, deletePlayer, setName}) => {
   const playRatio = player.playTimeMillis / avgPlayTime
   
   let status = 'NORMAL'
@@ -188,16 +230,23 @@ const Player = ({player, togglePlayerIsPlaying, avgPlayTime}) => {
     ...PLAYER_STYLE_MAP[status]
   }
 
-  return <button onClick={togglePlayerIsPlaying(player.id)} style={style}>
-    {player.name} {formatDuration(player.playTimeMillis)}
-  </button>
+  if (editMode) {
+    return <div>
+      <input value={player.name} onChange={evt => setName(player.id)(evt.target.value)} />
+      <button onClick={deletePlayer(player.id)}>Delete</button>
+    </div>
+  } else {
+    return <button onClick={togglePlayerIsPlaying(player.id)} style={style}>
+      {player.name} {formatDuration(player.playTimeMillis)}
+    </button>
+  }
 }
 
-const PlayerList = ({players, togglePlayerIsPlaying, avgPlayTime}) => {
+const PlayerList = ({players, togglePlayerIsPlaying, avgPlayTime, editMode, deletePlayer, setName}) => {
   return <ul style={{listStyleType: 'none', margin: 0, padding: '5px'}}>
     {players.map(player => {
       return <li style={{margin: 0, padding: 0}} key={player.id}>
-        <Player player={player} togglePlayerIsPlaying={togglePlayerIsPlaying} avgPlayTime={avgPlayTime} />
+        <Player {...{player, togglePlayerIsPlaying, avgPlayTime, editMode, deletePlayer, setName}} />
       </li>
     })}
   </ul>
