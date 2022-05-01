@@ -208,6 +208,12 @@ const formatDuration = (durationMillis) => {
     ('' + Math.floor(durationMillis / 1000 % 60)).padStart(2, '0')
 }
 
+const inputStyle = {
+  padding: '5px',
+  width: '100%',
+  display: 'block'
+}
+
 export default () => {
   const initialState = getInitialState()
   const [state, dispatch] = useReducer(reducer, initialState)
@@ -241,29 +247,42 @@ export default () => {
   const totalPlayTime = players.reduce((sum, player) => sum + player.playTimeMillis, 0)
   const avgPlayTime = totalPlayTime / players.length
 
-  return <div>
+
+  const baseStyle = {
+    fontSize: '20px'
+  }
+
+  const headerStyle = {background: 'lightgrey', fontSize: '20px', textAlign: 'center', margin: '0', padding: '4px 0'}
+
+  return <div style={baseStyle}>
+    <div style={{background: state.isPlaying ? 'green' : 'red', textAlign: 'center', margin: '0', padding: '6px 0', fontSize: '22px'}}
+      onClick={() => dispatch({type: 'toggleIsPlaying'})}>
+      {state.isPlaying ? 'Playing ' : 'Paused '}
+      {formatDuration(state.totalGameTime)}{' '}
+      (Tap to {state.isPlaying ? 'pause' : 'resume'})
+    </div>
+
     {state.editMode &&
       <div>
-        <input type="text" value={state.playerFormName} onChange={setPlayerFormName} />
+        <input style={inputStyle} type="text" value={state.playerFormName} onChange={setPlayerFormName} />
         <button onClick={() => dispatch({type: 'addPlayer'})}>Add Player</button>
       </div>
     }
     
-    <div>In Play</div>
+    <div style={headerStyle}>In Play</div>
     <PlayerList {...{players: inPlay, dispatch, avgPlayTime, editMode: state.editMode}} />
-    <div>On the Bench</div>
+    <div style={headerStyle}>On the Bench</div>
     <PlayerList {...{players: onTheBench, dispatch, avgPlayTime, editMode: state.editMode}} />
     {state.editMode &&
       <>
-        <div>Unavailable</div>
+        <div style={headerStyle}>Unavailable</div>
         <PlayerList {...{players: unavailable, dispatch, avgPlayTime, editMode: state.editMode}} />
       </>
     }
-    <button onClick={() => dispatch({type: 'toggleIsPlaying'})}>{state.isPlaying ? 'Pause' : 'Play'}</button>
+    <div style={headerStyle}>Actions</div>
     <button onClick={() => dispatch({type: 'newGame'})}>New Game</button>
     <button onClick={() => dispatch({type: 'toggleEditMode'})}>{state.editMode ? 'Done Editing' : 'Edit Players'}</button>
-    <button onClick={() => dispatch({type: 'showTeamList'})}>Select Team</button>
-    <div>Total Game Time: {formatDuration(state.totalGameTime)}</div>
+    <button onClick={() => dispatch({type: 'showTeamList'})}>Switch Team</button>
   </div>
 }
 
@@ -277,32 +296,38 @@ const Player = ({player, dispatch, avgPlayTime, editMode}) => {
   const playRatio = player.playTimeMillis / avgPlayTime
   
   let status = 'NORMAL'
-  if (avgPlayTime > 5 * 60 * 1000) {
+  if (avgPlayTime > .2 * 60 * 1000) {
     if (playRatio < .7) status = 'UNDERPLAYED'
     else if (playRatio > 1.3) status = 'OVERPLAYED'
   }
 
   const style = {
-    margin: '5px 0',
-    padding: '5px 10px',
+    fontSize: '20px',
+    margin: '0',
+    padding: '10px',
+    borderStyle: 'solid',
+    borderWidth: '0 0 1px 0',
+    borderColor: 'light grey',
     ...PLAYER_STYLE_MAP[status]
   }
 
   if (editMode) {
     return <div>
-      <input value={player.name} onChange={evt => dispatch({type: 'setName', playerId: player.id, name: evt.target.value})} />
+      <input style={inputStyle} value={player.name} onChange={evt => dispatch({type: 'setPlayerName', playerId: player.id, name: evt.target.value})} />
       <button onClick={() => dispatch({type: 'deletePlayer', playerId: player.id})}>Delete</button>
       <button onClick={() => dispatch({type: 'togglePlayerIsAvailable', playerId: player.id})}>{player.isAvailable ? 'Unavailable' : 'Available'}</button>
     </div>
   } else {
-    return <button onClick={() => dispatch({type: 'togglePlayerIsPlaying', playerId: player.id})} style={style}>
-      {player.name} {formatDuration(player.playTimeMillis)}
-    </button>
+    return <div 
+      onClick={() => dispatch({type: 'togglePlayerIsPlaying', playerId: player.id})}
+      style={style}>
+        {player.name} {formatDuration(player.playTimeMillis)}
+    </div>
   }
 }
 
 const PlayerList = ({players, dispatch, avgPlayTime, editMode}) => {
-  return <ul style={{listStyleType: 'none', margin: 0, padding: '5px'}}>
+  return <ul style={{listStyleType: 'none', margin: 0, padding: 0}}>
     {players.map(player => {
       return <li style={{margin: 0, padding: 0}} key={player.id}>
         <Player {...{player, dispatch, avgPlayTime, editMode}} />
@@ -334,7 +359,7 @@ const Team = ({team, dispatch}) => {
   }
   
   return <div>
-    <input type="text" value={team.name} onChange={setTeamName} />
+    <input style={inputStyle} type="text" value={team.name} onChange={setTeamName} />
     <button onClick={() => dispatch({type: 'selectTeam', teamId: team.id})}>Select</button>
   </div>
 }
