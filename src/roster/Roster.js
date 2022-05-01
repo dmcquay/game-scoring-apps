@@ -1,8 +1,6 @@
 import * as R from 'ramda'
-import React, {useState} from 'react'
+import React, {useReducer, useEffect} from 'react'
 import uuid from 'uuid'
-
-let updatePlayTimeInterval = null
 
 const DEFAULT_STATE = {
   players: {},
@@ -22,25 +20,23 @@ const getInitialState = () => {
   }
 }
 
-const formatDuration = (durationMillis) => {
-  return '' + Math.floor(durationMillis / 1000 / 60) + ':' +
-    ('' + Math.floor(durationMillis / 1000 % 60)).padStart(2, '0')
+const reducer = (state, action) => {
+  const newState = reducers[action.type](state, action)
+  localStorage.setItem('rosterState', JSON.stringify(newState))
+  return newState
 }
 
-export default () => {
-  const [state, _setState] = useState(getInitialState())
+const reducers = {
+  setPlayerFormName(state, action) {
+    return {
+      ...state,
+      playerFormName: action.value
+    }
+  },
 
-  const setState = (fnOrState) => {
-    _setState(state => {
-      const newState = typeof(fnOrState) === 'function' ? fnOrState(state) : fnOrState
-      localStorage.setItem('rosterState', JSON.stringify(newState))
-      return newState
-    })
-  }
-
-  const addPlayer = () => {
+  addPlayer(state) {
     const id = uuid.v4()
-    setState(state => ({
+    return {
       ...state,
       playerFormName: '',
       players: {
@@ -52,134 +48,129 @@ export default () => {
           isPlaying: false
         }
       }
-    }))
-  }
+    }
+  },
 
-  const updatePlayTimes = () => {
-    setState(state => {
-      let elapsedMillis = Date.now() - state.playTimeStart
-      const playTimeStart = Date.now()
-
-      const players = Object.values(state.players).map(player => {
-        return {
-          ...player,
-          playTimeMillis: player.isPlaying ? player.playTimeMillis + elapsedMillis : player.playTimeMillis
-        }
-      }).reduce((byIds, player) => {
-        return {
-          ...byIds,
-          [player.id]: player
-        }
-      }, {})
-
-      return {
-        ...state,
-        players,
-        playTimeStart,
-        totalGameTime: state.totalGameTime + elapsedMillis
-      }
-    })
-  }
-
-  if (state.isPlaying && updatePlayTimeInterval == null) {
-    updatePlayTimeInterval = setInterval(updatePlayTimes, 1000);
-  }
-
-  const toggleIsPlaying = () => {
-    setState(state => {
-      const isPlaying = !state.isPlaying
-      if (isPlaying) {
-        updatePlayTimeInterval = setInterval(updatePlayTimes, 1000);
-      } else {
-        clearInterval(updatePlayTimeInterval)
-        updatePlayTimeInterval = null
-      }
-      return {
-        ...state,
-        isPlaying,
-        playTimeStart: Date.now()
-      }
-    }, () => {
-      console.log('it got called') 
-    })
-  }
-
-  const setPlayerFormName = (evt) => {
-    const playerFormName = evt.target.value
-    setState(state => ({
+  toggleIsPlaying(state) {
+    const isPlaying = !state.isPlaying
+    return {
       ...state,
-      playerFormName
-    }))
-  }
+      isPlaying,
+      playTimeStart: Date.now()
+    }
+  },
 
-  const togglePlayerIsPlaying = (playerId) => () => {
-    setState(state => ({
+  updatePlayTimes(state) {
+    let elapsedMillis = Date.now() - state.playTimeStart
+    const playTimeStart = Date.now()
+
+    const players = Object.values(state.players).map(player => {
+      return {
+        ...player,
+        playTimeMillis: player.isPlaying ? player.playTimeMillis + elapsedMillis : player.playTimeMillis
+      }
+    }).reduce((byIds, player) => {
+      return {
+        ...byIds,
+        [player.id]: player
+      }
+    }, {})
+
+    return {
+      ...state,
+      players,
+      playTimeStart,
+      totalGameTime: state.totalGameTime + elapsedMillis
+    }
+  },
+
+  togglePlayerIsPlaying(state, action) {
+    return {
       ...state,
       players: {
         ...state.players,
-        [playerId]: {
-          ...state.players[playerId],
-          isPlaying: !state.players[playerId].isPlaying
+        [action.playerId]: {
+          ...state.players[action.playerId],
+          isPlaying: !state.players[action.playerId].isPlaying
         }
       }
-    }))
-  }
+    }
+  },
 
-  const newGame = () => {
-    setState(state => {
-      const players = Object.values(state.players).map(player => {
-        return {
-          ...player,
-          playTimeMillis: 0,
-          isPlaying: false
-        }
-      }).reduce((byIds, player) => {
-        return {
-          ...byIds,
-          [player.id]: player
-        }
-      }, {})
-
-      return {
-        ...state,
-        isPlaying: false,
-        players
-      }
-    })
-  }
-
-  const toggleEditMode = () => {
-    setState(state => {
-      return {
-        ...state,
-        editMode: !state.editMode
-      }
-    })
-  }
-
-  const setName = (playerId) => (name) => {
-    setState(state => {
-      return {
-        ...state,
-        players: {
-          ...state.players,
-          [playerId]: {
-            ...state.players[playerId],
-            name
-          }
+  setName(state, action) {
+    return {
+      ...state,
+      players: {
+        ...state.players,
+        [action.playerId]: {
+          ...state.players[action.playerId],
+          name: action.name
         }
       }
-    })
-  }
+    }
+  },
 
-  const deletePlayer = (playerId) => () => {
-    setState(state => {
-      const players = {...state.players}
-      delete players[playerId]
+  deletePlayer(state, action) {
+    const players = {...state.players}
+      delete players[action.playerId]
       return {
         ...state,
         players
       }
+  },
+
+  newGame(state) {
+    const players = Object.values(state.players).map(player => {
+      return {
+        ...player,
+        playTimeMillis: 0,
+        isPlaying: false
+      }
+    }).reduce((byIds, player) => {
+      return {
+        ...byIds,
+        [player.id]: player
+      }
+    }, {})
+
+    return {
+      ...state,
+      isPlaying: false,
+      players
+    }
+  },
+
+  toggleEditMode(state) {
+    return {
+      ...state,
+      editMode: !state.editMode
+    }
+  }
+}
+
+const formatDuration = (durationMillis) => {
+  return '' + Math.floor(durationMillis / 1000 / 60) + ':' +
+    ('' + Math.floor(durationMillis / 1000 % 60)).padStart(2, '0')
+}
+
+export default () => {
+  const initialState = getInitialState()
+  const [state, dispatch] = useReducer(reducer, initialState)
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {  //assign interval to a variable to clear it.
+      if (!state.isPlaying) return
+      dispatch({type: 'updatePlayTimes'})
+    }, 1000)
+  
+    return () => clearInterval(intervalId); //This is important
+  })
+
+  const setPlayerFormName = (evt) => {
+    const playerFormName = evt.target.value
+    dispatch({
+      type: 'setPlayerFormName',
+      value: playerFormName
     })
   }
 
@@ -194,17 +185,17 @@ export default () => {
     {state.editMode &&
       <div>
         <input type="text" value={state.playerFormName} onChange={setPlayerFormName} />
-        <button onClick={addPlayer}>Add Player</button>
+        <button onClick={() => dispatch({type: 'addPlayer'})}>Add Player</button>
       </div>
     }
     
     <div>In Play</div>
-    <PlayerList {...{players: inPlay, togglePlayerIsPlaying, avgPlayTime, editMode: state.editMode, setName, deletePlayer}} />
+    <PlayerList {...{players: inPlay, dispatch, avgPlayTime, editMode: state.editMode}} />
     <div>On the Bench</div>
-    <PlayerList {...{players: onTheBench, togglePlayerIsPlaying, avgPlayTime, editMode: state.editMode, setName, deletePlayer}} />
-    <button onClick={toggleIsPlaying}>{state.isPlaying ? 'Pause' : 'Play'}</button>
-    <button onClick={newGame}>New Game</button>
-    <button onClick={toggleEditMode}>{state.editMode ? 'Done Editing' : 'Edit Players'}</button>
+    <PlayerList {...{players: onTheBench, dispatch, avgPlayTime, editMode: state.editMode}} />
+    <button onClick={() => dispatch({type: 'toggleIsPlaying'})}>{state.isPlaying ? 'Pause' : 'Play'}</button>
+    <button onClick={() => dispatch({type: 'newGame'})}>New Game</button>
+    <button onClick={() => dispatch({type: 'toggleEditMode'})}>{state.editMode ? 'Done Editing' : 'Edit Players'}</button>
     <div>Total Game Time: {formatDuration(state.totalGameTime)}</div>
   </div>
 }
@@ -215,7 +206,7 @@ const PLAYER_STYLE_MAP = {
   OVERPLAYED: { backgroundColor: 'pink' }
 }
 
-const Player = ({player, togglePlayerIsPlaying, avgPlayTime, editMode, deletePlayer, setName}) => {
+const Player = ({player, dispatch, avgPlayTime, editMode}) => {
   const playRatio = player.playTimeMillis / avgPlayTime
   
   let status = 'NORMAL'
@@ -232,21 +223,21 @@ const Player = ({player, togglePlayerIsPlaying, avgPlayTime, editMode, deletePla
 
   if (editMode) {
     return <div>
-      <input value={player.name} onChange={evt => setName(player.id)(evt.target.value)} />
-      <button onClick={deletePlayer(player.id)}>Delete</button>
+      <input value={player.name} onChange={evt => dispatch({type: 'setName', playerId: player.id, name: evt.target.value})} />
+      <button onClick={() => dispatch({type: 'deletePlayer', playerId: player.id})}>Delete</button>
     </div>
   } else {
-    return <button onClick={togglePlayerIsPlaying(player.id)} style={style}>
+    return <button onClick={() => dispatch({type: 'togglePlayerIsPlaying', playerId: player.id})} style={style}>
       {player.name} {formatDuration(player.playTimeMillis)}
     </button>
   }
 }
 
-const PlayerList = ({players, togglePlayerIsPlaying, avgPlayTime, editMode, deletePlayer, setName}) => {
+const PlayerList = ({players, dispatch, avgPlayTime, editMode}) => {
   return <ul style={{listStyleType: 'none', margin: 0, padding: '5px'}}>
     {players.map(player => {
       return <li style={{margin: 0, padding: 0}} key={player.id}>
-        <Player {...{player, togglePlayerIsPlaying, avgPlayTime, editMode, deletePlayer, setName}} />
+        <Player {...{player, dispatch, avgPlayTime, editMode}} />
       </li>
     })}
   </ul>
