@@ -1,23 +1,23 @@
 {
   "files": {
     "main.css": "/game-scoring-apps/static/css/main.83771e61.chunk.css",
-    "main.js": "/game-scoring-apps/static/js/main.0332a76b.chunk.js",
-    "main.js.map": "/game-scoring-apps/static/js/main.0332a76b.chunk.js.map",
+    "main.js": "/game-scoring-apps/static/js/main.ea3aa302.chunk.js",
+    "main.js.map": "/game-scoring-apps/static/js/main.ea3aa302.chunk.js.map",
     "runtime-main.js": "/game-scoring-apps/static/js/runtime-main.549615fc.js",
     "runtime-main.js.map": "/game-scoring-apps/static/js/runtime-main.549615fc.js.map",
-    "static/js/2.73e4aa92.chunk.js": "/game-scoring-apps/static/js/2.73e4aa92.chunk.js",
-    "static/js/2.73e4aa92.chunk.js.map": "/game-scoring-apps/static/js/2.73e4aa92.chunk.js.map",
+    "static/js/2.1a5f2b0a.chunk.js": "/game-scoring-apps/static/js/2.1a5f2b0a.chunk.js",
+    "static/js/2.1a5f2b0a.chunk.js.map": "/game-scoring-apps/static/js/2.1a5f2b0a.chunk.js.map",
     "index.html": "/game-scoring-apps/index.html",
-    "precache-manifest.8c81e8546a076710f113354fce667a86.js": "/game-scoring-apps/precache-manifest.8c81e8546a076710f113354fce667a86.js",
+    "precache-manifest.47a1fd781bd062ea25b1236219ccca4b.js": "/game-scoring-apps/precache-manifest.47a1fd781bd062ea25b1236219ccca4b.js",
     "service-worker.js": "/game-scoring-apps/service-worker.js",
     "static/css/main.83771e61.chunk.css.map": "/game-scoring-apps/static/css/main.83771e61.chunk.css.map",
-    "static/js/2.73e4aa92.chunk.js.LICENSE.txt": "/game-scoring-apps/static/js/2.73e4aa92.chunk.js.LICENSE.txt",
+    "static/js/2.1a5f2b0a.chunk.js.LICENSE.txt": "/game-scoring-apps/static/js/2.1a5f2b0a.chunk.js.LICENSE.txt",
     "static/media/menu.svg": "/game-scoring-apps/static/media/menu.0db3c92e.svg"
   },
   "entrypoints": [
     "static/js/runtime-main.549615fc.js",
-    "static/js/2.73e4aa92.chunk.js",
+    "static/js/2.1a5f2b0a.chunk.js",
     "static/css/main.83771e61.chunk.css",
-    "static/js/main.0332a76b.chunk.js"
+    "static/js/main.ea3aa302.chunk.js"
   ]
 }
