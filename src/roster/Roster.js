@@ -45,7 +45,8 @@ const reducers = {
           id,
           name: state.playerFormName,
           playTimeMillis: 0,
-          isPlaying: false
+          isPlaying: false,
+          isAvailable: true
         }
       }
     }
@@ -97,6 +98,19 @@ const reducers = {
     }
   },
 
+  togglePlayerIsAvailable(state, action) {
+    return {
+      ...state,
+      players: {
+        ...state.players,
+        [action.playerId]: {
+          ...state.players[action.playerId],
+          isAvailable: !state.players[action.playerId].isAvailable
+        }
+      }
+    }
+  },
+
   setName(state, action) {
     return {
       ...state,
@@ -136,7 +150,8 @@ const reducers = {
     return {
       ...state,
       isPlaying: false,
-      players
+      players,
+      totalGameTime: 0
     }
   },
 
@@ -175,8 +190,9 @@ export default () => {
   }
 
   const players = R.sortBy(R.prop('playTimeMillis'), Object.values(state.players))
-  const inPlay = players.filter(x => x.isPlaying)
-  const onTheBench = players.filter(x => !x.isPlaying)
+  const inPlay = players.filter(x => x.isAvailable && x.isPlaying)
+  const onTheBench = players.filter(x => x.isAvailable && !x.isPlaying)
+  const unavailable = players.filter(x => !x.isAvailable)
 
   const totalPlayTime = players.reduce((sum, player) => sum + player.playTimeMillis, 0)
   const avgPlayTime = totalPlayTime / players.length
@@ -193,6 +209,12 @@ export default () => {
     <PlayerList {...{players: inPlay, dispatch, avgPlayTime, editMode: state.editMode}} />
     <div>On the Bench</div>
     <PlayerList {...{players: onTheBench, dispatch, avgPlayTime, editMode: state.editMode}} />
+    {state.editMode &&
+      <>
+        <div>Unavailable</div>
+        <PlayerList {...{players: unavailable, dispatch, avgPlayTime, editMode: state.editMode}} />
+      </>
+    }
     <button onClick={() => dispatch({type: 'toggleIsPlaying'})}>{state.isPlaying ? 'Pause' : 'Play'}</button>
     <button onClick={() => dispatch({type: 'newGame'})}>New Game</button>
     <button onClick={() => dispatch({type: 'toggleEditMode'})}>{state.editMode ? 'Done Editing' : 'Edit Players'}</button>
@@ -225,6 +247,7 @@ const Player = ({player, dispatch, avgPlayTime, editMode}) => {
     return <div>
       <input value={player.name} onChange={evt => dispatch({type: 'setName', playerId: player.id, name: evt.target.value})} />
       <button onClick={() => dispatch({type: 'deletePlayer', playerId: player.id})}>Delete</button>
+      <button onClick={() => dispatch({type: 'togglePlayerIsAvailable', playerId: player.id})}>{player.isAvailable ? 'Unavailable' : 'Available'}</button>
     </div>
   } else {
     return <button onClick={() => dispatch({type: 'togglePlayerIsPlaying', playerId: player.id})} style={style}>
