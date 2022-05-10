@@ -1,5 +1,3 @@
-const EventEmitter = require('events')
-
 const topics = {}
 let consumers = {}
 
