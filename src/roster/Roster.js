@@ -1,6 +1,7 @@
 import * as R from 'ramda'
-import React, {useReducer, useEffect} from 'react'
+import React, {useReducer, useEffect, useState} from 'react'
 import uuid from 'uuid'
+import io from 'socket.io-client';
 
 const DEFAULT_TEAM = {
   id: uuid.v4(),
@@ -31,9 +32,14 @@ const getInitialState = () => {
   }
 }
 
-const reducer = (state, action) => {
+const reducer = (getSocket) => (state, action) => {
   const newState = reducers[action.type](state, action)
   localStorage.setItem('rosterState', JSON.stringify(newState))
+  const socket = getSocket()
+  if (socket != null) {
+    console.log('socket is not null. sending state.')
+    socket.emit('rosterState', JSON.stringify(newState))
+  }
   return newState
 }
 
@@ -216,7 +222,13 @@ const inputStyle = {
 
 export default () => {
   const initialState = getInitialState()
-  const [state, dispatch] = useReducer(reducer, initialState)
+  const [socket, setSocket] = useState(null);
+
+  const getSocket = () => {
+    return socket
+  }
+
+  const [state, dispatch] = useReducer(reducer(getSocket), initialState)
 
   useEffect(() => {
     const intervalId = setInterval(() => {  //assign interval to a variable to clear it.
@@ -226,6 +238,16 @@ export default () => {
   
     return () => clearInterval(intervalId); //This is important
   })
+
+  useEffect(() => {
+    const socket = io('http://localhost:3001')
+    setSocket(socket)
+    return () => socket.close()
+    // socket.on('chat message', msg => {
+    //   console.log('received chat message: ' + msg)
+    // })
+    // socket.emit('chat message', 'hello')
+  }, [setSocket])
 
   const setPlayerFormName = (evt) => {
     const playerFormName = evt.target.value
