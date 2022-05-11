@@ -32,13 +32,22 @@ const getInitialState = () => {
   }
 }
 
+const getClientId = () => {
+  let clientId = localStorage.getItem('rosterClientId')
+  if (clientId == null) {
+    clientId = uuid.v4()
+    localStorage.setItem('rosterClientId', clientId)
+  }
+  return clientId
+}
+
 const reducer = (getSocket) => (state, action) => {
   const newState = reducers[action.type](state, action)
   localStorage.setItem('rosterState', JSON.stringify(newState))
   const socket = getSocket()
-  if (socket != null) {
-    console.log('socket is not null. sending state.')
-    socket.emit('rosterState', JSON.stringify(newState))
+  if (socket != null && ['addPlayer'].includes(action.type) && !action.clientId) {
+    console.log('sending action to socket')
+    socket.emit('rosterAction', {...action, clientId: getClientId()})
   }
   return newState
 }
@@ -88,10 +97,11 @@ const reducers = {
     }
   },
 
-  addPlayer(state) {
+  addPlayer(state, action) {
+    console.log(action)
     const player = {
       id: uuid.v4(),
-      name: state.playerFormName,
+      name: action.name,
       playTimeMillis: 0,
       isPlaying: false,
       isAvailable: true
@@ -241,12 +251,17 @@ export default () => {
 
   useEffect(() => {
     const socket = io('http://localhost:3001')
+    socket.emit('rosterSubscribe', getClientId())
     setSocket(socket)
+    socket.on('rosterAction', action => {
+      console.log('received action: ' + JSON.stringify(action))
+      if (action.clientId === getClientId()) {
+        console.log('client id matches. ignoring. ' + action.clientId)
+      } else {
+        dispatch(action)
+      }
+    })
     return () => socket.close()
-    // socket.on('chat message', msg => {
-    //   console.log('received chat message: ' + msg)
-    // })
-    // socket.emit('chat message', 'hello')
   }, [setSocket])
 
   const setPlayerFormName = (evt) => {
@@ -287,7 +302,7 @@ export default () => {
     {state.editMode &&
       <div>
         <input style={inputStyle} type="text" value={state.playerFormName} onChange={setPlayerFormName} />
-        <button onClick={() => dispatch({type: 'addPlayer'})}>Add Player</button>
+        <button onClick={() => dispatch({type: 'addPlayer', name: state.playerFormName})}>Add Player</button>
       </div>
     }
     

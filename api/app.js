@@ -1,4 +1,5 @@
 const express = require('express')
+const uuid = require('uuid')
 const http = require('http')
 const app = express()
 const server = http.createServer(app)
@@ -18,12 +19,8 @@ app.get('/', (req, res) => {
 io.on('connection', (socket) => {
   console.log('a user connected')
   
-  const consumer = consume('messages', (msgs) => {
+  const consumer = consume('messages', uuid.v4(), (msgs) => {
     msgs.forEach(msg => socket.emit('chat message', msg))
-  })
-
-  const rosterStateConsumer = consume('rosterState', (msgs) => {
-    msgs.forEach(msg => socket.emit('rosterState', msg))
   })
 
   socket.on('chat message', (msg) => {
@@ -31,15 +28,27 @@ io.on('connection', (socket) => {
     console.log('message: ' + msg)
   })
 
-  socket.on('rosterState', (msg) => {
-    publish('rosterState', msg)
-    console.log('rosterState: ' + msg)
+  let rosterActionConsumer
+  socket.on('rosterSubscribe', (clientId) => {
+    rosterActionConsumer = consume('rosterAction', clientId, (msgs) => {
+      msgs.forEach(msg => socket.emit('rosterAction', msg))
+    })
+  })
+
+  socket.on('rosterSubscribe', (msg) => {
+    publish('rosterAction', msg)
+    console.log('rosterAction: ' + msg)
+  })
+
+  socket.on('rosterAction', (msg) => {
+    publish('rosterAction', msg)
+    console.log('rosterAction: ' + msg)
   })
 
   socket.on('disconnect', () => {
     console.log('user disconnected');
     consumer.cancel()
-    rosterStateConsumer.cancel()
+    if (rosterActionConsumer != null) rosterActionConsumer.cancel()
   });
 })
 

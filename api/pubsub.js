@@ -1,5 +1,12 @@
 const topics = {}
-let consumers = {}
+
+// key=${consumerId}:${topicName}
+// value=offset (starting at 0)
+const consumerOffsets = {}
+
+// key=topicName
+// value={cb, consumerId}[]
+let activeConsumersByTopic = {}
 
 const publish = (topic, data) => {
   if (topics[topic] == null) {
@@ -9,33 +16,39 @@ const publish = (topic, data) => {
   emitBatchesForTopic(topic)
 }
 
-const consume = (topic, cb) => {
-  const obj = {
-    cb,
-    index: 0
+const consume = (topic, consumerId, cb) => {
+  if (consumerOffsets[`${consumerId}:${topic}`] == null) {
+    consumerOffsets[`${consumerId}:${topic}`] = 0
   }
-  if (consumers[topic] == null) {
-    consumers[topic] = []
+
+  const consumer = {cb, id: consumerId}
+
+  if (activeConsumersByTopic[topic] == null) {
+    activeConsumersByTopic[topic] = []
   }
-  consumers[topic].push(obj)
+  activeConsumersByTopic[topic].push(consumer)
+
   emitBatchesForTopic(topic)
+
   return {
     cancel() {
-      consumers[topic] = consumers[topic].filter(x => x !== obj)
+      activeConsumersByTopic[topic] = activeConsumersByTopic[topic].filter(x => x !== consumer)
     }
   }
 }
 
 const emitBatch = (topic, consumer) => {
   if (topics[topic] == null) return
-  if (consumer.index == topics[topic].length) return
-  const messages = topics[topic].slice(consumer.index)
+  if (consumerOffsets[`${consumer.id}:${topic}`] == topics[topic].length) return
+  const messages = topics[topic].slice(consumerOffsets[`${consumer.id}:${topic}`])
+  console.log(consumer)
   consumer.cb(messages)
-  consumer.index = topics[topic].length
+  consumerOffsets[`${consumer.id}:${topic}`] = topics[topic].length
 }
 
 const emitBatchesForTopic = (topic) => {
-  for (let consumer of consumers[topic]) {
+  console.log('emitting batches for this may consumers of topic: ' + activeConsumersByTopic[topic])
+  for (let consumer of activeConsumersByTopic[topic] || []) {
     emitBatch(topic, consumer)
   }
 }
