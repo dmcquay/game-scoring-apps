@@ -1,7 +1,7 @@
 import * as R from 'ramda'
 import React, {useReducer, useEffect, useState} from 'react'
 import uuid from 'uuid'
-import io from 'socket.io-client';
+// import io from 'socket.io-client';
 
 const DEFAULT_TEAM = {
   id: uuid.v4(),
@@ -15,7 +15,6 @@ const DEFAULT_STATE = {
     [DEFAULT_TEAM.id]: DEFAULT_TEAM
   },
   activeTeamId: DEFAULT_TEAM.id,
-  playerFormName: '',
   isPlaying: false,
   playTimeStart: undefined,
   totalGameTime: 0,
@@ -32,23 +31,23 @@ const getInitialState = () => {
   }
 }
 
-const getClientId = () => {
-  let clientId = localStorage.getItem('rosterClientId')
-  if (clientId == null) {
-    clientId = uuid.v4()
-    localStorage.setItem('rosterClientId', clientId)
-  }
-  return clientId
-}
+// const getClientId = () => {
+//   let clientId = localStorage.getItem('rosterClientId')
+//   if (clientId == null) {
+//     clientId = uuid.v4()
+//     localStorage.setItem('rosterClientId', clientId)
+//   }
+//   return clientId
+// }
 
-const reducer = (getSocket) => (state, action) => {
+const reducer = (state, action) => {
   const newState = reducers[action.type](state, action)
   localStorage.setItem('rosterState', JSON.stringify(newState))
-  const socket = getSocket()
-  if (socket != null && ['addPlayer'].includes(action.type) && !action.clientId) {
-    console.log('sending action to socket')
-    socket.emit('rosterAction', {...action, clientId: getClientId()})
-  }
+  // const socket = getSocket()
+  // if (socket != null && ['addPlayer'].includes(action.type) && !action.clientId) {
+  //   console.log('sending action to socket')
+  //   socket.emit('rosterAction', {...action, clientId: getClientId()})
+  // }
   return newState
 }
 
@@ -87,13 +86,6 @@ const reducers = {
     return {
       ...state,
       showTeamList: true
-    }
-  },
-  
-  setPlayerFormName(state, action) {
-    return {
-      ...state,
-      playerFormName: action.value
     }
   },
 
@@ -232,13 +224,14 @@ const inputStyle = {
 
 export default () => {
   const initialState = getInitialState()
-  const [socket, setSocket] = useState(null);
+  // const [socket, setSocket] = useState(null);
+  const [name, setName] = useState('')
 
-  const getSocket = () => {
-    return socket
-  }
+  // const getSocket = () => {
+  //   return socket
+  // }
 
-  const [state, dispatch] = useReducer(reducer(getSocket), initialState)
+  const [state, dispatch] = useReducer(reducer, initialState)
 
   useEffect(() => {
     const intervalId = setInterval(() => {  //assign interval to a variable to clear it.
@@ -249,28 +242,20 @@ export default () => {
     return () => clearInterval(intervalId); //This is important
   })
 
-  useEffect(() => {
-    const socket = io('http://localhost:3001')
-    socket.emit('rosterSubscribe', getClientId())
-    setSocket(socket)
-    socket.on('rosterAction', action => {
-      console.log('received action: ' + JSON.stringify(action))
-      if (action.clientId === getClientId()) {
-        console.log('client id matches. ignoring. ' + action.clientId)
-      } else {
-        dispatch(action)
-      }
-    })
-    return () => socket.close()
-  }, [setSocket])
-
-  const setPlayerFormName = (evt) => {
-    const playerFormName = evt.target.value
-    dispatch({
-      type: 'setPlayerFormName',
-      value: playerFormName
-    })
-  }
+  // useEffect(() => {
+  //   const socket = io('http://localhost:3001')
+  //   socket.emit('rosterSubscribe', getClientId())
+  //   setSocket(socket)
+  //   socket.on('rosterAction', action => {
+  //     console.log('received action: ' + JSON.stringify(action))
+  //     if (action.clientId === getClientId()) {
+  //       console.log('client id matches. ignoring. ' + action.clientId)
+  //     } else {
+  //       dispatch(action)
+  //     }
+  //   })
+  //   return () => socket.close()
+  // }, [setSocket])
 
   if (state.showTeamList || state.activeTeamId == null) {
     return <TeamEditor teams={state.teams} dispatch={dispatch} />
@@ -301,8 +286,8 @@ export default () => {
 
     {state.editMode &&
       <div>
-        <input style={inputStyle} type="text" value={state.playerFormName} onChange={setPlayerFormName} />
-        <button onClick={() => dispatch({type: 'addPlayer', name: state.playerFormName})}>Add Player</button>
+        <input style={inputStyle} type="text" value={name} onChange={evt => setName(evt.target.value)} />
+        <button onClick={() => dispatch({type: 'addPlayer', name})}>Add Player</button>
       </div>
     }
     

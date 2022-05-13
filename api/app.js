@@ -18,37 +18,19 @@ app.get('/', (req, res) => {
 
 io.on('connection', (socket) => {
   console.log('a user connected')
-  
-  const consumer = consume('messages', uuid.v4(), (msgs) => {
-    msgs.forEach(msg => socket.emit('chat message', msg))
-  })
 
   socket.on('chat message', (msg) => {
     publish('messages', msg)
     console.log('message: ' + msg)
   })
 
-  let rosterActionConsumer
-  socket.on('rosterSubscribe', (clientId) => {
-    rosterActionConsumer = consume('rosterAction', clientId, (msgs) => {
-      msgs.forEach(msg => socket.emit('rosterAction', msg))
-    })
-  })
-
-  socket.on('rosterSubscribe', (msg) => {
-    publish('rosterAction', msg)
-    console.log('rosterAction: ' + msg)
-  })
-
-  socket.on('rosterAction', (msg) => {
-    publish('rosterAction', msg)
-    console.log('rosterAction: ' + msg)
+  socket.on('rosterState', (state) => {
+    socket.broadcast.emit(state)
+    console.log('broadcasting: ' + JSON.stringify(state))
   })
 
   socket.on('disconnect', () => {
     console.log('user disconnected');
-    consumer.cancel()
-    if (rosterActionConsumer != null) rosterActionConsumer.cancel()
   });
 })
 
