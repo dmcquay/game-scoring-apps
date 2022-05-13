@@ -1,35 +1,8 @@
 import * as R from 'ramda'
-import React, {useReducer, useEffect, useState} from 'react'
-import uuid from 'uuid'
+import React, {useState} from 'react'
+import {useSharedStateReducer} from './state'
+
 // import io from 'socket.io-client';
-
-const DEFAULT_TEAM = {
-  id: uuid.v4(),
-  name: 'My Team',
-  players: {}
-}
-
-const DEFAULT_STATE = {
-  version: 1,
-  teams: {
-    [DEFAULT_TEAM.id]: DEFAULT_TEAM
-  },
-  activeTeamId: DEFAULT_TEAM.id,
-  isPlaying: false,
-  playTimeStart: undefined,
-  totalGameTime: 0,
-  editMode: false,
-  showTeamList: false
-}
-
-const getInitialState = () => {
-  const gameStateString = localStorage.getItem('rosterState')
-  if (gameStateString) {
-    return JSON.parse(gameStateString)
-  } else {
-    return DEFAULT_STATE
-  }
-}
 
 // const getClientId = () => {
 //   let clientId = localStorage.getItem('rosterClientId')
@@ -39,177 +12,6 @@ const getInitialState = () => {
 //   }
 //   return clientId
 // }
-
-const reducer = (state, action) => {
-  const newState = reducers[action.type](state, action)
-  localStorage.setItem('rosterState', JSON.stringify(newState))
-  // const socket = getSocket()
-  // if (socket != null && ['addPlayer'].includes(action.type) && !action.clientId) {
-  //   console.log('sending action to socket')
-  //   socket.emit('rosterAction', {...action, clientId: getClientId()})
-  // }
-  return newState
-}
-
-const reducers = {
-  addTeam(state, action) {
-    const team = {
-      id: uuid.v4(),
-      name: action.name,
-      players: {}
-    }
-
-    return R.set(
-      R.lensPath(['teams', team.id]),
-      team,
-      state
-    )
-  },
-
-  setTeamName(state, action) {
-    return R.set(
-      R.lensPath(['teams', action.teamId, 'name']),
-      action.name,
-      state
-    )
-  },
-
-  selectTeam(state, action) {
-    return {
-      ...state,
-      activeTeamId: action.teamId,
-      showTeamList: false
-    }
-  },
-
-  showTeamList(state) {
-    return {
-      ...state,
-      showTeamList: true
-    }
-  },
-
-  addPlayer(state, action) {
-    console.log(action)
-    const player = {
-      id: uuid.v4(),
-      name: action.name,
-      playTimeMillis: 0,
-      isPlaying: false,
-      isAvailable: true
-    }
-
-    return {
-      ...R.set(
-        R.lensPath(['teams', state.activeTeamId, 'players', player.id]),
-        player,
-        state
-      ),
-      playerFormName: ''
-    }
-  },
-
-  toggleIsPlaying(state) {
-    const isPlaying = !state.isPlaying
-    return {
-      ...state,
-      isPlaying,
-      playTimeStart: Date.now()
-    }
-  },
-
-  updatePlayTimes(state) {
-    let elapsedMillis = Date.now() - state.playTimeStart
-    const playTimeStart = Date.now()
-
-    const players = R.mapObjIndexed(
-      (player) => {
-        return {
-          ...player,
-          playTimeMillis: player.isPlaying ? player.playTimeMillis + elapsedMillis : player.playTimeMillis
-        }
-      },
-      state.teams[state.activeTeamId].players
-    )
-
-    return {
-      ...R.set(
-        R.lensPath(['teams', state.activeTeamId, 'players']),
-        players,
-        state
-      ),
-      playTimeStart,
-      totalGameTime: state.totalGameTime + elapsedMillis
-    }
-  },
-
-  togglePlayerIsPlaying(state, action) {
-    return R.set(
-      R.lensPath(['teams', state.activeTeamId, 'players', action.playerId, 'isPlaying']),
-      !state.teams[state.activeTeamId].players[action.playerId].isPlaying,
-      state
-    )
-  },
-
-  togglePlayerIsAvailable(state, action) {
-    const player = state.teams[state.activeTeamId].players[action.playerId]
-    return R.set(
-      R.lensPath(['teams', state.activeTeamId, 'players', action.playerId]),
-      {
-        ...player,
-        isAvailable: !player.isAvailable,
-        isPlaying: false
-      },
-      state
-    )
-  },
-
-  setPlayerName(state, action) {
-    return R.set(
-      R.lensPath(['teams', state.activeTeamId, 'players', action.playerId, 'name']),
-      action.name,
-      state
-    )
-  },
-
-  deletePlayer(state, action) {
-    return R.set(
-      R.lensPath(['teams', state.activeTeamId, 'players']),
-      R.omit([action.playerId], state.teams[state.activeTeamId].players),
-      state
-    )
-  },
-
-  newGame(state) {
-    const players = R.mapObjIndexed(
-      (player) => {
-        return {
-          ...player,
-          playTimeMillis: 0,
-          isPlaying: false
-        }
-      },
-      state.teams[state.activeTeamId].players
-    )
-
-    return {
-      ...R.set(
-        R.lensPath(['teams', state.activeTeamId, 'players']),
-        players,
-        state
-      ),
-      isPlaying: false,
-      totalGameTime: 0
-    }
-  },
-
-  toggleEditMode(state) {
-    return {
-      ...state,
-      editMode: !state.editMode
-    }
-  }
-}
 
 const formatDuration = (durationMillis) => {
   return '' + Math.floor(durationMillis / 1000 / 60) + ':' +
@@ -223,7 +25,6 @@ const inputStyle = {
 }
 
 export default () => {
-  const initialState = getInitialState()
   // const [socket, setSocket] = useState(null);
   const [name, setName] = useState('')
 
@@ -231,16 +32,9 @@ export default () => {
   //   return socket
   // }
 
-  const [state, dispatch] = useReducer(reducer, initialState)
+  const [state, dispatch] = useSharedStateReducer()
 
-  useEffect(() => {
-    const intervalId = setInterval(() => {  //assign interval to a variable to clear it.
-      if (!state.isPlaying) return
-      dispatch({type: 'updatePlayTimes'})
-    }, 1000)
-  
-    return () => clearInterval(intervalId); //This is important
-  })
+  const team = state.teams[state.activeTeamId]
 
   // useEffect(() => {
   //   const socket = io('http://localhost:3001')
@@ -261,7 +55,7 @@ export default () => {
     return <TeamEditor teams={state.teams} dispatch={dispatch} />
   }
 
-  const players = R.sortBy(R.prop('playTimeMillis'), Object.values(state.teams[state.activeTeamId].players))
+  const players = R.sortBy(R.prop('playTimeMillis'), Object.values(team.players))
   const inPlay = players.filter(x => x.isAvailable && x.isPlaying)
   const onTheBench = players.filter(x => x.isAvailable && !x.isPlaying)
   const unavailable = players.filter(x => !x.isAvailable)
@@ -269,25 +63,29 @@ export default () => {
   const totalPlayTime = players.reduce((sum, player) => sum + player.playTimeMillis, 0)
   const avgPlayTime = totalPlayTime / players.length
 
-
   const baseStyle = {
     fontSize: '20px'
   }
 
   const headerStyle = {background: 'lightgrey', fontSize: '20px', textAlign: 'center', margin: '0', padding: '4px 0'}
 
+  const addPlayer = () => {
+    dispatch({type: 'addPlayer', name})
+    setName('')
+  }
+
   return <div style={baseStyle}>
-    <div style={{background: state.isPlaying ? 'green' : 'red', textAlign: 'center', margin: '0', padding: '6px 0', fontSize: '22px'}}
+    <div style={{background: team.isPlaying ? 'green' : 'red', textAlign: 'center', margin: '0', padding: '6px 0', fontSize: '22px'}}
       onClick={() => dispatch({type: 'toggleIsPlaying'})}>
-      {state.isPlaying ? 'Playing ' : 'Paused '}
-      {formatDuration(state.totalGameTime)}{' '}
-      (Tap to {state.isPlaying ? 'pause' : 'resume'})
+      {team.isPlaying ? 'Playing ' : 'Paused '}
+      {formatDuration(team.totalGameTime)}{' '}
+      (Tap to {team.isPlaying ? 'pause' : 'resume'})
     </div>
 
     {state.editMode &&
       <div>
         <input style={inputStyle} type="text" value={name} onChange={evt => setName(evt.target.value)} />
-        <button onClick={() => dispatch({type: 'addPlayer', name})}>Add Player</button>
+        <button onClick={addPlayer}>Add Player</button>
       </div>
     }
     
@@ -302,7 +100,7 @@ export default () => {
       </>
     }
     <div style={headerStyle}>Actions</div>
-    <button onClick={() => dispatch({type: 'newGame'})}>New Game</button>
+    <button onClick={() => dispatch({type: 'newGame'})}>Reset</button>
     <button onClick={() => dispatch({type: 'toggleEditMode'})}>{state.editMode ? 'Done Editing' : 'Edit Players'}</button>
     <button onClick={() => dispatch({type: 'showTeamList'})}>Switch Team</button>
   </div>
